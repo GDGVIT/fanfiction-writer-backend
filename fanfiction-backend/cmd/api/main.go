@@ -11,11 +11,13 @@ import (
 
 const version = "1.0.0"
 
+// config is a struct containing all the command line variables used to configure the api
 type config struct {
 	port int
 	env  string
 }
 
+// application is a struct used to manage all application-wide dependencies to make them available to the handlers and other functions
 type application struct {
 	config config
 	logger *log.Logger
