@@ -40,3 +40,13 @@ func (app *application) methodNotAllowedResponse(w http.ResponseWriter, r *http.
 	message := fmt.Sprintf("The %s method is not allowed for this resource", r.Method)
 	app.errorResponse(w, r, http.StatusMethodNotAllowed, message)
 }
+
+// badRequestResponse is used to send a 400 Bad Request status code and an appropriate error message
+func (app *application) badRequestResponse(w http.ResponseWriter, r *http.Request, err error){
+	app.errorResponse(w, r, http.StatusBadRequest, err.Error())
+}
+
+// failedValidationResponse is used to send a 422 Unprocessable Entity status code and an appropriate error message
+func (app *application) failedValidationResponse(w http.ResponseWriter, r *http.Request, errors map[string]string){
+	app.errorResponse(w, r, http.StatusUnprocessableEntity, errors)
+}
