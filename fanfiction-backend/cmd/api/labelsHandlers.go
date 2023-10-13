@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"net/http"
+	"time"
 
 	"github.com/GDGVIT/fanfiction-writer-backend/fanfiction-backend/internal/data"
 	"github.com/GDGVIT/fanfiction-writer-backend/fanfiction-backend/internal/validator"
@@ -47,6 +48,7 @@ func (app *application) showLabelHandler(w http.ResponseWriter, r *http.Request)
 
 	label := data.Label{
 		ID:      id,
+		CreatedAt: time.Now(),
 		Name:    "Student",
 		Version: 1,
 	}
