@@ -7,13 +7,14 @@ import (
 	"time"
 
 	"github.com/GDGVIT/fanfiction-writer-backend/fanfiction-backend/internal/validator"
+	"github.com/lib/pq"
 )
 
 type Label struct {
 	ID        int64     `json:"id"`
 	CreatedAt time.Time `json:"-"`
 	Name      string    `json:"name"`
-	SubLabels []int64   `json:"sub_labels,omitempty"`
+	SubLabels []int64   `json:"sublabels,omitempty"`
 	Blacklist []int64   `json:"blacklist,omitempty"`
 	Version   int32     `json:"version"`
 }
@@ -34,13 +35,52 @@ type LabelModel struct {
 // Create a label entry in the database
 func (m LabelModel) Create(label *Label) error {
 	query := `INSERT INTO labels (name)
-	VALUES $1
+	VALUES ($1)
 	RETURNING id, created_at, version`
 
 	ctx, cancel := context.WithTimeout(context.Background(), TimeoutDuration)
 	defer cancel()
 
-	return m.DB.QueryRowContext(ctx, query, label.Name).Scan(&label.ID, &label.CreatedAt, &label.Version)
+	err := m.DB.QueryRowContext(ctx, query, label.Name).Scan(&label.ID, &label.CreatedAt, &label.Version)
+	if err != nil {
+		return err
+	}
+
+	err = m.CreateSublabel(label.ID, label.SubLabels...)
+	if err != nil {
+		return err
+	}
+
+	err = m.CreateBlacklist(label.ID, label.Blacklist...)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+// Create the sublabels of a label
+func (m LabelModel) CreateSublabel(label_id int64, sublabel_ids ...int64) error {
+	query := `INSERT INTO sublabels 
+	SELECT $1, labels.id FROM labels where labels.id = ANY($2)`
+
+	ctx, cancel := context.WithTimeout(context.Background(), TimeoutDuration)
+	defer cancel()
+
+	_, err := m.DB.ExecContext(ctx, query, label_id, pq.Array(sublabel_ids))
+	return err
+}
+
+// Create the blacklist of a label
+func (m LabelModel) CreateBlacklist(label_id int64, blacklist ...int64) error {
+	query := `INSERT INTO blacklist_labels
+	SELECT $1, labels.id FROM labels where labels.id = ANY($2)`
+
+	ctx, cancel := context.WithTimeout(context.Background(), TimeoutDuration)
+	defer cancel()
+
+	_, err := m.DB.ExecContext(ctx, query, label_id, pq.Array(blacklist))
+	return err
 }
 
 // Retrieve a specific label based on label_id
@@ -137,7 +177,7 @@ func (m LabelModel) GetAllBlacklistLabel(id int64) ([]int64, error) {
 	defer rows.Close()
 	blacklist := []int64{}
 
-	for rows.Next(){
+	for rows.Next() {
 		var blacklist_id int64
 
 		err := rows.Scan(&blacklist_id)
@@ -159,6 +199,107 @@ func (m LabelModel) Update(name string) error {
 	return nil
 }
 
+// Delete a label based on label_id. Due to CASCADE in database, all related records are also deleted
 func (m LabelModel) Delete(id int64) error {
+	if id < 1 {
+		return ErrRecordNotFound
+	}
+
+	query := `DELETE FROM LABELS
+	WHERE id = $1`
+
+	ctx, cancel := context.WithTimeout(context.Background(), TimeoutDuration)
+	defer cancel()
+
+	result, err := m.DB.ExecContext(ctx, query, id)
+	if err != nil {
+		return err
+	}
+
+	rowsAffected, err := result.RowsAffected()
+	if err != nil {
+		return err
+	}
+
+	if rowsAffected == 0 {
+		return ErrRecordNotFound
+	}
+
+	return nil
+}
+
+// DeleteSubLabel deletes the sublabels associated with a given label. If no sublabels are given, all are deleted.
+func (m LabelModel) DeleteSublabel(label_id int64, sublabel_ids ...int64) error {
+	ctx, cancel := context.WithTimeout(context.Background(), TimeoutDuration)
+	defer cancel()
+
+	var (
+		result sql.Result
+		err    error
+	)
+
+	if len(sublabel_ids) == 0 {
+		query := `DELETE FROM sublabels 
+		WHERE label_id = $1`
+
+		result, err = m.DB.ExecContext(ctx, query, label_id)
+	} else {
+		query := `DELETE FROM sublabels 
+		WHERE label_id = $1 AND  sublabel_id = ANY($2)`
+
+		result, err = m.DB.ExecContext(ctx, query, label_id, pq.Array(sublabel_ids))
+	}
+
+	if err != nil {
+		return err
+	}
+
+	rowsAffected, err := result.RowsAffected()
+	if err != nil {
+		return err
+	}
+
+	if rowsAffected == 0 {
+		return ErrRecordNotFound
+	}
+
+	return nil
+}
+
+// DeleteSubLabel deletes the sublabels associated with a given label. If no sublabels are given, all are deleted.
+func (m LabelModel) DeleteBlacklist(label_id int64, blacklist ...int64) error {
+	ctx, cancel := context.WithTimeout(context.Background(), TimeoutDuration)
+	defer cancel()
+
+	var (
+		result sql.Result
+		err    error
+	)
+
+	if len(blacklist) == 0 {
+		query := `DELETE FROM blacklist_labels 
+		WHERE label_id = $1`
+
+		result, err = m.DB.ExecContext(ctx, query, label_id)
+	} else {
+		query := `DELETE FROM blacklist_labels 
+		WHERE label_id = $1 AND  blacklist_id = ANY($2)`
+
+		result, err = m.DB.ExecContext(ctx, query, label_id, pq.Array(blacklist))
+	}
+
+	if err != nil {
+		return err
+	}
+
+	rowsAffected, err := result.RowsAffected()
+	if err != nil {
+		return err
+	}
+
+	if rowsAffected == 0 {
+		return ErrRecordNotFound
+	}
+
 	return nil
 }

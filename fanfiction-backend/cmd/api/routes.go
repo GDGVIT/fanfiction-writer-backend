@@ -15,8 +15,10 @@ func (app *application) routes() *httprouter.Router {
 	router.HandlerFunc(http.MethodGet, "/v1/healthcheck", app.healthcheckHandler)
 	router.HandlerFunc(http.MethodGet, "/v1/labels/:id", app.showLabelHandler)
 	router.HandlerFunc(http.MethodPost, "/v1/labels", app.createLabelHandler)
-	// router.HandlerFunc(http.MethodPost, "/v1/labels/sublabel/:id")
-	// router.HandlerFunc(http.MethodPost, "/v1/labels/blacklist/:id")
+	router.HandlerFunc(http.MethodDelete, "/v1/labels/:id", app.deleteLabelHandler)
+	// router.HandlerFunc(http.MethodPost, "/v1/sublabel/:id")
+	// router.HandlerFunc(http.MethodPost, "/v1/blacklist/:id")
 
+	// ? Should path be /v1/labels/... and /v1/sublabels/.... OR /v1/labels/label/... and /v1/labels/sublabel/.....
 	return router
 }
