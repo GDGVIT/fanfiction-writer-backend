@@ -20,5 +20,7 @@ func (app *application) routes() *httprouter.Router {
 	// router.HandlerFunc(http.MethodPost, "/v1/blacklist/:id")
 
 	// ? Should path be /v1/labels/... and /v1/sublabels/.... OR /v1/labels/label/... and /v1/labels/sublabel/.....
+
+	router.HandlerFunc(http.MethodPost, "/v1/users", app.registerUserHandler)
 	return router
 }

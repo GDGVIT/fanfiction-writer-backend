@@ -2,6 +2,11 @@ package validator
 
 import "regexp"
 
+// This var stores the standard regex pattern for email ID according to https://html.spec.whatwg.org/#valid-e-mail-address
+var (
+	EmailRX = regexp.MustCompile("^[a-zA-Z0-9.!#$%&'*+\\/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$")
+)
+
 // Validator is a struct used to hold a map of validation errors
 type Validator struct {
 	Errors map[string]string
