@@ -13,6 +13,37 @@
 [![DOCS](https://img.shields.io/badge/Documentation-see%20docs-green?style=flat-square&logo=appveyor)](INSERT_LINK_FOR_DOCS_HERE) 
   [![UI ](https://img.shields.io/badge/User%20Interface-Link%20to%20UI-orange?style=flat-square&logo=appveyor)](INSERT_UI_LINK_HERE)
 
+## Implemented Features(Remove once complete)
+- [x] Healthcheck
+- [x] Error Responses for status codes 500(server error), 404(notfound), 405(methodnot), 400(badrequest), 422(failvalidation)
+- [x] Helper functions for read/write JSON
+- [x] Validation package for email, struct fields, etc
+- [x] Routes
+  - http.MethodGet, "/v1/healthcheck", app.healthcheckHandler
+  - http.MethodGet, "/v1/labels/:id", app.showLabelHandler
+  - http.MethodPost, "/v1/labels", app.createLabelHandler
+  - http.MethodDelete, "/v1/labels/:id", app.deleteLabelHandler
+  - http.MethodPost, "/v1/users", app.registerUserHandler
+- [x] Labels
+    - [x] Create Label Handler + DB
+        - [x] Sublabel and blacklist autocalled, as well as standalone funcs
+        - [ ] Specific error message instead of generic for passing created label id as a sublabel/blacklist
+        - [ ] \ Error message for passing labels that don't exist (quietly ignored)
+        - [ ] \ Change sublabel/blacklist to take in names instead of IDs
+        - [ ] Figure out how to handle cases where partial creation is done in DB
+    - [x] Get Label Handler + DB
+        - [x] Sublabel and blacklist autocalled, as well as standalone funcs
+        - [ ] Get list of all labels
+    - [ ] Update Label name (all references to other tables will be create/delete only)
+    - [x] Delete Label Handler + DB
+        - [x] On Delete Cascade auto deletes sublabels/blacklist
+    - [x] Delete Sublabel/Blacklist DB func
+        - If list of IDs passed, only those deleted, else all are deleted
+- [x] Users 
+    - [x] Create User Handler + DB
+    - [ ] Email sending
+    - [ ] User activation
+    - [ ] Session tokens
 
 ## Features
 - [ ]  < feature >
