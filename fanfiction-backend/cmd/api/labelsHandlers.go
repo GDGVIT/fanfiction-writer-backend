@@ -64,7 +64,12 @@ func (app *application) showLabelHandler(w http.ResponseWriter, r *http.Request)
 
 	label, err := app.models.Labels.Get(id)
 	if err != nil {
-		app.serverErrorResponse(w, r, err)
+		switch {
+		case errors.Is(err, data.ErrRecordNotFound):
+			app.notFoundResponse(w, r)
+		default:
+			app.serverErrorResponse(w, r, err)
+		}
 		return
 	}
 
