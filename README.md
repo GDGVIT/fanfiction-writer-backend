@@ -24,6 +24,7 @@
   - http.MethodPost, "/v1/labels", app.createLabelHandler
   - http.MethodDelete, "/v1/labels/:id", app.deleteLabelHandler
   - http.MethodPost, "/v1/users", app.registerUserHandler
+  - http.MethodPut, "/v1/users/activated", app.activateUserHandler
 - [x] Labels
     - [x] Create Label Handler + DB
         - [x] Sublabel and blacklist autocalled, as well as standalone funcs
@@ -42,7 +43,7 @@
 - [x] Users 
     - [x] Create User Handler + DB
     - [ ] Email sending
-    - [ ] User activation
+    - [x] User activation
     - [ ] Session tokens
 
 ## Features

@@ -12,7 +12,7 @@ import (
 * TODO Create an appropriate error response when creating a label which has given its own id in sublabel/blacklist
 * ? When passing a label which doesnt exist into create of label - sublabel/blacklist, it is quietly ignored. Error message?
 * ? While creating sublabels/blacklist, should the array have the id's of the labels or the names.
-* TODO If names, helper function getLabelIDbyName is required
+* ? If names, helper function getLabelIDbyName is required
  */
 
 // createLabelHandler is the handler used in creating labels

@@ -11,7 +11,7 @@ func (app *application) logError(r *http.Request, err error) {
 }
 
 // errorResponse is a generic helper for sending JSON-formatted error messages to the client
-func (app *application) errorResponse(w http.ResponseWriter, r *http.Request, status int, message interface{}){
+func (app *application) errorResponse(w http.ResponseWriter, r *http.Request, status int, message interface{}) {
 	env := envelope{"error": message}
 
 	err := app.writeJSON(w, status, env, nil)
@@ -22,7 +22,7 @@ func (app *application) errorResponse(w http.ResponseWriter, r *http.Request, st
 }
 
 // serverErrorResponse is used when the server encounters an error during runtime. It logs the detailed error, then uses the errorResponse() helper to send a 500 Internal Server Error status code and a generic error message
-func (app *application) serverErrorResponse(w http.ResponseWriter, r *http.Request, err error){
+func (app *application) serverErrorResponse(w http.ResponseWriter, r *http.Request, err error) {
 	app.logError(r, err)
 
 	message := "The server encountered a problem and could not process your request"
@@ -30,23 +30,29 @@ func (app *application) serverErrorResponse(w http.ResponseWriter, r *http.Reque
 }
 
 // notFoundResponse is used to send a 404 Not Found status code and an appropriate error message
-func (app *application) notFoundResponse(w http.ResponseWriter, r *http.Request){
+func (app *application) notFoundResponse(w http.ResponseWriter, r *http.Request) {
 	message := "The requested resource could not be found"
 	app.errorResponse(w, r, http.StatusNotFound, message)
 }
 
 // methodNotAllowedResponse is used to send a 405 Method Not Allowed status code and an appropriate error message
-func (app *application) methodNotAllowedResponse(w http.ResponseWriter, r *http.Request){
+func (app *application) methodNotAllowedResponse(w http.ResponseWriter, r *http.Request) {
 	message := fmt.Sprintf("The %s method is not allowed for this resource", r.Method)
 	app.errorResponse(w, r, http.StatusMethodNotAllowed, message)
 }
 
 // badRequestResponse is used to send a 400 Bad Request status code and an appropriate error message
-func (app *application) badRequestResponse(w http.ResponseWriter, r *http.Request, err error){
+func (app *application) badRequestResponse(w http.ResponseWriter, r *http.Request, err error) {
 	app.errorResponse(w, r, http.StatusBadRequest, err.Error())
 }
 
 // failedValidationResponse is used to send a 422 Unprocessable Entity status code and an appropriate error message
-func (app *application) failedValidationResponse(w http.ResponseWriter, r *http.Request, errors map[string]string){
+func (app *application) failedValidationResponse(w http.ResponseWriter, r *http.Request, errors map[string]string) {
 	app.errorResponse(w, r, http.StatusUnprocessableEntity, errors)
+}
+
+// editConflictResponse is used to send a 409 Status conflict status code and an appropriate error message
+func (app *application) editConflictResponse(w http.ResponseWriter, r *http.Request) {
+	message := "unable to update the record due to an edit conflict, please try again"
+	app.errorResponse(w, r, http.StatusConflict, message)
 }
