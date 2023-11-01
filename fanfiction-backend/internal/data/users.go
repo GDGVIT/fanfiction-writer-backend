@@ -81,7 +81,7 @@ func ValidateUser(v *validator.Validator, user *User) {
 	v.Check(len(user.Name) <= 500, "name", "must not be more than 500 bytes")
 
 	ValidateEmail(v, user.Email)
-	
+
 	if user.Password.plaintext != nil {
 		ValidatePassword(v, *user.Password.plaintext)
 	}
@@ -126,10 +126,10 @@ func (m UserModel) GetUserByEmail(email string) (*User, error) {
 	var user User
 
 	err := m.DB.QueryRowContext(ctx, query, email).Scan(
-		&user.ID, 
+		&user.ID,
 		&user.CreatedAt,
-		&user.Name, 
-		&user.Email, 
+		&user.Name,
+		&user.Email,
 		&user.Password.hash,
 		&user.Activated,
 		&user.Version,
