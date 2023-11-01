@@ -16,6 +16,7 @@ func (app *application) routes() *httprouter.Router {
 	router.HandlerFunc(http.MethodGet, "/v1/labels/:id", app.showLabelHandler)
 	router.HandlerFunc(http.MethodPost, "/v1/labels", app.createLabelHandler)
 	router.HandlerFunc(http.MethodDelete, "/v1/labels/:id", app.deleteLabelHandler)
+	router.HandlerFunc(http.MethodPatch, "/v1/labels/:id", app.updateLabelHandler)
 	// router.HandlerFunc(http.MethodPost, "/v1/sublabel/:id")
 	// router.HandlerFunc(http.MethodPost, "/v1/blacklist/:id")
 

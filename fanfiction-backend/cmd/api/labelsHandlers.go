@@ -25,7 +25,8 @@ func (app *application) createLabelHandler(w http.ResponseWriter, r *http.Reques
 
 	err := app.readJSON(w, r, &input)
 	if err != nil {
-		app.errorResponse(w, r, http.StatusBadRequest, err.Error())
+		app.badRequestResponse(w, r, err)
+		return
 	}
 
 	label := &data.Label{
@@ -43,7 +44,14 @@ func (app *application) createLabelHandler(w http.ResponseWriter, r *http.Reques
 
 	err = app.models.Labels.Create(label)
 	if err != nil {
-		app.serverErrorResponse(w, r, err)
+		switch {
+		case errors.Is(err, data.ErrDuplicateLabel):
+			v := validator.New()
+			v.AddError("label", "a label with this name already exists")
+			app.failedValidationResponse(w, r, v.Errors)
+		default:
+			app.serverErrorResponse(w, r, err)
+		}
 		return
 	}
 
@@ -76,6 +84,58 @@ func (app *application) showLabelHandler(w http.ResponseWriter, r *http.Request)
 	err = app.writeJSON(w, http.StatusOK, envelope{"label": label}, nil)
 	if err != nil {
 		app.serverErrorResponse(w, r, err)
+	}
+}
+
+func (app *application) updateLabelHandler(w http.ResponseWriter, r *http.Request) {
+	id, err := app.readIDParam(r)
+	if err != nil {
+		app.serverErrorResponse(w, r, err)
+		return
+	}
+
+	var input struct {
+		Name string `json:"name"`
+	}
+
+	err = app.readJSON(w, r, &input)
+	if err != nil {
+		app.badRequestResponse(w, r, err)
+		return
+	}
+
+	label, err := app.models.Labels.Get(id)
+	if err != nil {
+		switch {
+		case errors.Is(err, data.ErrRecordNotFound):
+			app.notFoundResponse(w, r)
+		default:
+			app.serverErrorResponse(w, r, err)
+		}
+		return
+	}
+
+	label.Name = input.Name
+
+	err = app.models.Labels.Update(label)
+	if err != nil {
+		switch {
+		case errors.Is(err, data.ErrDuplicateLabel):
+			v := validator.New()
+			v.AddError("label", "a label with this name already exists")
+			app.failedValidationResponse(w, r, v.Errors)
+		case errors.Is(err, data.ErrEditConflict):
+			app.editConflictResponse(w, r)
+		default:
+			app.serverErrorResponse(w, r, err)
+		}
+		return
+	}
+
+	err = app.writeJSON(w, http.StatusOK, envelope{"Label": label}, nil)
+	if err != nil {
+		app.serverErrorResponse(w, r, err)
+		return
 	}
 }
 

@@ -25,7 +25,10 @@ func ValidateLabel(v *validator.Validator, label *Label) {
 	v.Check(len(label.Name) <= 100, "name", "must not be more than 100 bytes long")
 
 	v.Check(validator.Unique(label.SubLabels), "sublabels", "must be unique")
+	// v.Check(validator.In(label.Name, label.SubLabels), "sublabels", "cannot contain itself")
+
 	v.Check(validator.Unique(label.Blacklist), "blacklist", "must be unique")
+	// v.Check(validator.In(label.Name, label.Blacklist), "blacklist", "cannot contain itself")
 }
 
 type LabelModel struct {
@@ -43,7 +46,12 @@ func (m LabelModel) Create(label *Label) error {
 
 	err := m.DB.QueryRowContext(ctx, query, label.Name).Scan(&label.ID, &label.CreatedAt, &label.Version)
 	if err != nil {
-		return err
+		switch {
+		case err.Error() == `pq: duplicate key value violates unique constraint "labels_name_key"`:
+			return ErrDuplicateLabel
+		default:
+			return err
+		}
 	}
 
 	err = m.CreateSublabel(label.ID, label.SubLabels...)
@@ -195,7 +203,33 @@ func (m LabelModel) GetAllBlacklistLabel(id int64) ([]int64, error) {
 	return blacklist, nil
 }
 
-func (m LabelModel) Update(name string) error {
+func (m LabelModel) Update(label *Label) error {
+	query := `UPDATE labels
+	SET name=$1, version = version + 1
+	WHERE id=$2 AND version = $3
+	RETURNING version`
+
+	args := []interface{}{
+		label.Name,
+		label.ID,
+		label.Version,
+	}
+
+	ctx, cancel := context.WithTimeout(context.Background(), TimeoutDuration)
+	defer cancel()
+
+	err := m.DB.QueryRowContext(ctx, query, args...).Scan(&label.Version)
+	if err != nil {
+		switch {
+		case err.Error() == `pq: duplicate key value violates unique constraint "labels_name_key"`:
+			return ErrDuplicateLabel
+		case errors.Is(err, sql.ErrNoRows):
+			return ErrEditConflict
+		default:
+			return err
+		}
+	}
+
 	return nil
 }
 
@@ -205,7 +239,7 @@ func (m LabelModel) Delete(id int64) error {
 		return ErrRecordNotFound
 	}
 
-	query := `DELETE FROM LABELS
+	query := `DELETE FROM labels
 	WHERE id = $1`
 
 	ctx, cancel := context.WithTimeout(context.Background(), TimeoutDuration)

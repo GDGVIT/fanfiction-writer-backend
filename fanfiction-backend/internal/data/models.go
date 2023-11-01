@@ -9,8 +9,11 @@ import (
 var (
 	ErrRecordNotFound = errors.New("record not found")
 	ErrEditConflict   = errors.New("edit conflict")
+	ErrDuplicateEmail = errors.New("duplicate email")
+	ErrDuplicateLabel = errors.New("duplicate label")
 )
 
+// The amount of time given for a database command to run
 var (
 	TimeoutDuration = 3 * time.Second
 )
