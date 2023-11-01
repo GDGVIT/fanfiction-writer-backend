@@ -133,6 +133,58 @@ func (m LabelModel) Get(id int64) (*Label, error) {
 	return &label, nil
 }
 
+func (m LabelModel) GetAllLabels() ([]*Label, error) {
+	query := `SELECT id, created_at, name, version
+	FROM labels`
+
+	ctx, cancel := context.WithTimeout(context.Background(), TimeoutDuration)
+	defer cancel()
+
+	rows, err := m.DB.QueryContext(ctx, query)
+	if err != nil {
+		return nil, err
+	}
+
+	defer rows.Close()
+
+	labels := []*Label{}
+
+	for rows.Next() {
+		var label Label
+		var sublabel []int64
+		var blacklist []int64
+
+		err := rows.Scan(
+			&label.ID,
+			&label.CreatedAt,
+			&label.Name,
+			&label.Version,
+		)
+		if err != nil {
+			return nil, err
+		}
+
+		sublabel, err = m.GetAllSublabel(label.ID)
+		if err != nil {
+			return nil, err
+		}
+		blacklist, err = m.GetAllBlacklistLabel(label.ID)
+		if err != nil {
+			return nil, err
+		}
+		label.SubLabels = sublabel
+		label.Blacklist = blacklist
+
+		labels = append(labels, &label)
+	}
+
+	if err = rows.Err(); err != nil {
+		return nil, err
+	}
+
+	return labels, nil
+}
+
 // Retrieve all sublabels based on label_id
 func (m LabelModel) GetAllSublabel(id int64) ([]int64, error) {
 	query := `SELECT sublabel_id

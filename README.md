@@ -35,7 +35,7 @@
     - [x] Get Label Handler + DB
         - [x] Sublabel and blacklist autocalled, as well as standalone funcs
         - [ ] Get list of all labels
-    - [ ] Update Label name (all references to other tables will be create/delete only)
+    - [x] Update Label name (all references to other tables will be create/delete only)
     - [x] Delete Label Handler + DB
         - [x] On Delete Cascade auto deletes sublabels/blacklist
     - [x] Delete Sublabel/Blacklist DB func

@@ -87,6 +87,21 @@ func (app *application) showLabelHandler(w http.ResponseWriter, r *http.Request)
 	}
 }
 
+func (app *application) listLabelsHandler(w http.ResponseWriter, r *http.Request) {
+	labels, err := app.models.Labels.GetAllLabels()
+	if err != nil {
+		app.serverErrorResponse(w, r, err)
+		return
+	}
+
+	err = app.writeJSON(w, http.StatusOK, envelope{"labels": labels}, nil)
+	if err != nil {
+		app.serverErrorResponse(w, r, err)
+		return
+	}
+
+}
+
 func (app *application) updateLabelHandler(w http.ResponseWriter, r *http.Request) {
 	id, err := app.readIDParam(r)
 	if err != nil {
