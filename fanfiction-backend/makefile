@@ -1,3 +1,5 @@
+include .envrc
+
 ## help: Display this help message
 .PHONY: help
 help:
@@ -36,3 +38,15 @@ db/migrations/up:
 db/migrations/down: confirm
 	@echo 'Running all down migrations'
 	migrate -path=./migrations -database=${FFWRITER_DB_DSN} down
+
+## db/migrations/goto: go to specific migration version
+.PHONY: db/migrations/goto
+db/migrations/goto: confirm
+	@echo 'Going to version number ${version}'
+	migrate -path=./migrations -database=${FFWRITER_DB_DSN} goto ${version}
+
+## db/migrations/force: force migration to a specific version
+.PHONY: db/migrations/force
+db/migrations/force: confirm
+	@echo 'Forcing to version number ${version}'
+	migrate -path=./migrations -database=${FFWRITER_DB_DSN} force ${version}

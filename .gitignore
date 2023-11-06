@@ -20,3 +20,6 @@ go.work
 # VSCode Configuration
 tls/ 
 .vscode/
+
+# Environment files
+.envrc
