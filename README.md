@@ -18,6 +18,11 @@
 - [x] Error Responses for status codes 500(server error), 404(notfound), 405(methodnot), 400(badrequest), 422(failvalidation)
 - [x] Helper functions for read/write JSON
 - [x] Validation package for email, struct fields, etc
+- [ ] Email for activation token
+- [ ] Middleware
+  - [ ] Auth
+  - [ ] Rate limiter
+  - [ ] Panic Recovery
 - [x] Routes
   - http.MethodGet, "/v1/healthcheck", app.healthcheckHandler
   - http.MethodGet, "/v1/labels/:id", app.showLabelHandler
@@ -26,25 +31,34 @@
   - http.MethodPost, "/v1/users", app.registerUserHandler
   - http.MethodPut, "/v1/users/activated", app.activateUserHandler
 - [x] Labels
-    - [x] Create Label Handler + DB
-        - [x] Sublabel and blacklist autocalled, as well as standalone funcs
-        - [ ] Specific error message instead of generic for passing created label id as a sublabel/blacklist
-        - [ ] \ Error message for passing labels that don't exist (quietly ignored)
-        - [ ] \ Change sublabel/blacklist to take in names instead of IDs
-        - [ ] Figure out how to handle cases where partial creation is done in DB
-    - [x] Get Label Handler + DB
-        - [x] Sublabel and blacklist autocalled, as well as standalone funcs
-        - [ ] Get list of all labels
-    - [x] Update Label name (all references to other tables will be create/delete only)
-    - [x] Delete Label Handler + DB
-        - [x] On Delete Cascade auto deletes sublabels/blacklist
-    - [x] Delete Sublabel/Blacklist DB func
-        - If list of IDs passed, only those deleted, else all are deleted
+  - [x] Create Label Handler + DB
+      - [x] Sublabel and blacklist autocalled, as well as standalone funcs
+      - [ ] Specific error message instead of generic for passing created label id as a sublabel/blacklist
+      - [ ] \ Error message for passing labels that don't exist (quietly ignored)
+      - [ ] \ Change sublabel/blacklist to take in names instead of IDs
+      - [ ] Figure out how to handle cases where partial creation is done in DB
+  - [x] Get Label Handler + DB
+      - [x] Sublabel and blacklist autocalled, as well as standalone funcs
+      - [x] Get list of all labels
+  - [x] Update Label name (all references to other tables will be create/delete only)
+  - [x] Delete Label Handler + DB
+      - [x] On Delete Cascade auto deletes sublabels/blacklist
+  - [x] Delete Sublabel/Blacklist DB func
+      - If list of IDs passed, only those deleted, else all are deleted
 - [x] Users 
-    - [x] Create User Handler + DB
-    - [ ] Email sending
-    - [x] User activation
-    - [ ] Session tokens
+  - [x] Create User Handler + DB
+  - [ ] Email sending
+  - [x] User activation
+  - [ ] Session tokens
+- [ ] Events
+  - [x] DB
+  - [ ] Handler
+- [ ] Timelines
+  - [x] DB
+  - [ ] Handler
+- [ ] Stories  
+  - [x] DB
+  - [ ] Handler
 
 ## Features
 - [ ]  < feature >

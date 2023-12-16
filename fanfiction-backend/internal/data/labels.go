@@ -352,7 +352,7 @@ func (m LabelModel) DeleteSublabel(label_id int64, sublabel_ids ...int64) error 
 	return nil
 }
 
-// DeleteSubLabel deletes the sublabels associated with a given label. If no sublabels are given, all are deleted.
+// DeleteSubLabel deletes	 the sublabels associated with a given label. If no sublabels are given, all are deleted.
 func (m LabelModel) DeleteBlacklist(label_id int64, blacklist ...int64) error {
 	ctx, cancel := context.WithTimeout(context.Background(), TimeoutDuration)
 	defer cancel()
