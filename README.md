@@ -23,6 +23,7 @@
   - [ ] Auth
   - [ ] Rate limiter
   - [ ] Panic Recovery
+- [ ] Resend activation email 
 - [x] Routes
   - http.MethodGet, "/v1/healthcheck", app.healthcheckHandler
   - http.MethodGet, "/v1/labels/:id", app.showLabelHandler
