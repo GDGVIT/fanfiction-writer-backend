@@ -5,6 +5,8 @@ import (
 	"database/sql"
 	"errors"
 	"time"
+
+	"github.com/GDGVIT/fanfiction-writer-backend/fanfiction-backend/internal/validator"
 )
 
 type Story struct {
@@ -18,6 +20,10 @@ type Story struct {
 
 type StoryModel struct {
 	DB *sql.DB
+}
+
+func ValidateStory(v *validator.Validator, story *Story) {
+	v.Check(story.Title != "", "title", "must be provided")
 }
 
 func (m StoryModel) Insert(story *Story) error {
@@ -43,8 +49,50 @@ func (m StoryModel) Insert(story *Story) error {
 	return nil
 }
 
+func (m StoryModel) GetForUser(user_id int64) ([]*Story, error) {
+	query := `SELECT id, created_at, user_id, title, description, version
+	FROM stories
+	WHERE user_id = $1`
+
+	ctx, cancel := context.WithTimeout(context.Background(), TimeoutDuration)
+	defer cancel()
+
+	rows, err := m.DB.QueryContext(ctx, query, user_id)
+	if err != nil {
+		return nil, err
+	}
+
+	defer rows.Close()
+
+	stories := []*Story{}
+
+	for rows.Next() {
+		var story Story
+
+		err := rows.Scan(
+			&story.ID,
+			&story.CreatedAt,
+			&story.User_ID,
+			&story.Title,
+			&story.Description,
+			&story.Version,
+		)
+		if err != nil {
+			return nil, err
+		}
+
+		stories = append(stories, &story)
+	}
+
+	if err = rows.Err(); err != nil {
+		return nil, err
+	}
+
+	return stories, nil
+}
+
 func (m StoryModel) Get(user_id, story_id int64) (*Story, error) {
-	query := `SELECT (id, created_at, user_id, title, description, version)
+	query := `SELECT id, created_at, user_id, title, description, version
 	FROM stories
 	WHERE user_id = $1
 	AND id = $2`

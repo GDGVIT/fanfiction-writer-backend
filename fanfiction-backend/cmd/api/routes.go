@@ -25,6 +25,13 @@ func (app *application) routes() http.Handler {
 
 	router.HandlerFunc(http.MethodPost, "/v1/events", app.requireActivatedUser(app.createEventHandler))
 
+	router.HandlerFunc(http.MethodPost, "/v1/stories", app.requireActivatedUser(app.createStoryHandler))
+	router.HandlerFunc(http.MethodGet, "/v1/stories/:id", app.requireActivatedUser(app.getStoryHandler))
+	router.HandlerFunc(http.MethodGet, "/v1/stories", app.requireActivatedUser(app.listStoriesHandler))
+	router.HandlerFunc(http.MethodDelete, "/v1/stories/:id", app.requireActivatedUser(app.deleteStoryHandler))
+	router.HandlerFunc(http.MethodPatch, "/v1/stories/:id", app.requireActivatedUser(app.updateStoryHandler))
+
+
 	router.HandlerFunc(http.MethodPost, "/v1/users", app.registerUserHandler)
 	router.HandlerFunc(http.MethodPut, "/v1/users/activated", app.activateUserHandler)
 
