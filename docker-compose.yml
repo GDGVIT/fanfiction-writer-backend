@@ -1,22 +1,22 @@
 version: '3.8'
 
 services:
-  # web:
-  #   build: .
-  #   ports:
-  #     - 3000:3000
-  #   volumes:
-  #     - .:/usr/src/app
-  #   # command: >
-  #   #   sh -c "go run ./cmd/api/ --db-dsn=postgres://ffwriter:password@localhost/FF-Writer?sslmode=disable
-  #   env_file:
-  #     - ./fanfiction-backend/.envrc
-  #   links:
-  #     - db
-  #   depends_on:
-  #     - db
-  #   networks:
-  #     - ffwriter-network
+  web:
+    build: .
+    ports:
+      - 4000:4000
+    # volumes:
+    #   - .:/usr/src/app
+    # command: >
+    #   sh -c "go run ./cmd/api/ --db-dsn=postgres://ffwriter:password@localhost/FF-Writer?sslmode=disable
+    # env_file:
+    #   - ./fanfiction-backend/.envrc
+    # links:
+    #   - db
+    depends_on:
+      - db
+    networks:
+      - ffwriter-network
 
   db:
     image: postgres:alpine
@@ -41,7 +41,8 @@ services:
   migrate:
     image: migrate/migrate
     depends_on:
-      - db      
+      - db     
+      - web 
     volumes:
       - ./fanfiction-backend/migrations:/migrations 
     # entrypoint: "migrate -database postgres://ffwriter:password@db:5432/FF-Writer?sslmode=disable -path /migrations"
