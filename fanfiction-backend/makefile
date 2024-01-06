@@ -13,7 +13,7 @@ confirm:
 ## run/api: Runs cmd/api
 .PHONY: run/api
 run/api: 
-	@go run ./cmd/api --db-dsn=${FFWRITER_DB_DSN}
+	@go run ./cmd/api --db-dsn=${FFWRITER_DB_DSN_DOCKER}
 
 
 ## db/psql: connect to database using psql

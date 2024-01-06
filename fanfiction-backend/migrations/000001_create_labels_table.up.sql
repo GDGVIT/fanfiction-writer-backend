@@ -1,3 +1,5 @@
+CREATE EXTENSION IF NOT EXISTS citext;
+
 -- Creates the labels table
 CREATE TABLE IF NOT EXISTS labels
 (

@@ -76,6 +76,12 @@
 
 ## Running
 
+#### How to run(Delete this part as well once its done):
+1. Have docker 
+2. run `docker compose up` (this will run the db, but the migration tool will fail because it runs before the db sets up, even though it depends on the dp, idk how that works)
+3. run `docker compose run migrate` (this will run only the migrate tool, which links to the volume in the db and runs the appropriate migrations)
+4. run `docker ps`, and using the container id of the db container, run `docker exec -it [Container_ID] psql -U ffwriter FF-Writer` (this will open the psql shell in the docker container)
+5. run `\dt` and you will see all the tables have been migrated.
 
 < directions to install > 
 ```bash

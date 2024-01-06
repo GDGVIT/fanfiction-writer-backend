@@ -1,21 +1,23 @@
 version: '3.8'
 
 services:
-  web:
-    build: .
-    ports:
-      - 3000:3000
-    volumes:
-      - .:/usr/src/app
-    command: >
-      sh -c "cd fanfiction-backend &&
-             make run/api"
-    env_file:
-      - ./fanfiction-backend/.envrc
-    depends_on:
-      - db
-    networks:
-      - ffwriter-network
+  # web:
+  #   build: .
+  #   ports:
+  #     - 3000:3000
+  #   volumes:
+  #     - .:/usr/src/app
+  #   # command: >
+  #   #   sh -c "go run ./cmd/api/ --db-dsn=postgres://ffwriter:password@localhost/FF-Writer?sslmode=disable
+  #   env_file:
+  #     - ./fanfiction-backend/.envrc
+  #   links:
+  #     - db
+  #   depends_on:
+  #     - db
+  #   networks:
+  #     - ffwriter-network
+
   db:
     image: postgres:alpine
     env_file:
@@ -30,26 +32,21 @@ services:
       - postgres-db:/var/lib/postgresql/data
     networks:
       - ffwriter-network  
+    healthcheck:
+      test: pg_isready -U ffwriter -d FF-Writer
+      interval: 10s
+      timeout: 3s
+      retries: 5
+
   migrate:
     image: migrate/migrate
-
     depends_on:
-      - db
-
+      - db      
     volumes:
-      - .:/migrations
-    entrypoint: 
-      [
-        "migrate",
-        "-path",
-        "./migrations",
-        "-database",
-        "postgres://ffwriter:password@db:5432/FF-Writer?sslmode=disable",
-      ]
-    command: 
-      [
-        "up"
-      ]
+      - ./fanfiction-backend/migrations:/migrations 
+    # entrypoint: "migrate -database postgres://ffwriter:password@db:5432/FF-Writer?sslmode=disable -path /migrations"
+    # command: up
+    command: ["-path", "/migrations", "-database", "postgres://ffwriter:password@db:5432/FF-Writer?sslmode=disable", "up"]
     links:
       - db
     networks:
