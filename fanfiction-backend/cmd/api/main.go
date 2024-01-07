@@ -8,6 +8,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"strconv"
 	"time"
 
 	"github.com/GDGVIT/fanfiction-writer-backend/fanfiction-backend/internal/data"
@@ -41,13 +42,20 @@ func main() {
 
 	var cfg config
 
-	flag.IntVar(&cfg.port, "port", 4000, "API Server port")
-	flag.StringVar(&cfg.env, "env", "development", "Environment (development|staging|production)")
+	port := os.Getenv("PORT")
+	cfg.port, _ = strconv.Atoi(port)
+	if cfg.port == 0 {
+		cfg.port = 4000
+	}
 
-	flag.StringVar(&cfg.db.dsn, "db-dsn", "postgres://ffwriter:password@db:5432/FF-Writer", "PostgreSQL DSN")
-	flag.IntVar(&cfg.db.maxOpenConns, "db-max-open-conns", 25, "PostgreSQL max open connections")
-	flag.IntVar(&cfg.db.maxIdleConns, "db-max-idle-conns", 25, "PostgreSQL max idle connections")
-	flag.StringVar(&cfg.db.maxIdleTime, "db-max-idle-time", "15m", "PostgreSQL max connection idle time")
+	env := os.Getenv("ENV")
+	if env == "" {
+		env = "development"
+	}
+
+	flag.IntVar(&cfg.db.maxOpenConns, "db-max-open-conns", 10, "PostgreSQL max open connections")
+	flag.IntVar(&cfg.db.maxIdleConns, "db-max-idle-conns", 100, "PostgreSQL max idle connections")
+	flag.StringVar(&cfg.db.maxIdleTime, "db-max-idle-time", "1h", "PostgreSQL max connection idle time")
 
 	flag.Parse()
 
@@ -79,7 +87,20 @@ func main() {
 }
 
 func openDB(cfg config) (*sql.DB, error) {
-	db, err := sql.Open("postgres", cfg.db.dsn)
+	host := os.Getenv("DB_HOST")
+	user := os.Getenv("DB_USER")
+	password := os.Getenv("DB_PASSWORD")
+	dbName := os.Getenv("DB_NAME")
+	port := os.Getenv("DB_PORT")
+
+	dsn := "host=" + host +
+		" user=" + user +
+		" password=" + password +
+		" dbname=" + dbName +
+		" port=" + port +
+		" sslmode=disable"
+
+	db, err := sql.Open("postgres", dsn)
 	if err != nil {
 		return nil, err
 	}

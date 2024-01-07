@@ -13,21 +13,25 @@ services:
     #   - ./fanfiction-backend/.envrc
     # links:
     #   - db
+    environment:
+      - DB_HOST=db
+      - DB_USER=ffwriter
+      - DB_PASSWORD=password
+      - DB_NAME=FF-Writer
+      - DB_PORT=5432
     depends_on:
       - db
     networks:
       - ffwriter-network
 
   db:
-    image: postgres:alpine
-    env_file:
-      - ./fanfiction-backend/.envrc
+    image: postgres
     environment:
       - POSTGRES_USER=ffwriter
       - POSTGRES_PASSWORD=password
       - POSTGRES_DB=FF-Writer
     ports:
-      - "5432"
+      - 5432:5432
     volumes:
       - postgres-db:/var/lib/postgresql/data
     networks:
