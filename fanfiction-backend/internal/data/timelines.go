@@ -5,6 +5,8 @@ import (
 	"database/sql"
 	"errors"
 	"time"
+
+	"github.com/GDGVIT/fanfiction-writer-backend/fanfiction-backend/internal/validator"
 )
 
 type Timeline struct {
@@ -13,6 +15,10 @@ type Timeline struct {
 	Story_ID  int64     `json:"story_id"`
 	Name      string    `json:"name"`
 	Version   int       `json:"version"`
+}
+
+func ValidateTimeline(v *validator.Validator, timeline *Timeline) {
+	v.Check(timeline.Name != "", "name", "must be provided")
 }
 
 type TimelineModel struct {
