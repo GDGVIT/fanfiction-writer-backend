@@ -166,3 +166,51 @@ func (m CharacterModel) Delete(story_id, character_id int64) error {
 
 	return nil
 }
+
+func (m CharacterModel) GetAllForLabel(label_id int64) ([]*Character, error) {
+	query := `
+	SELECT c.id, c.created_at, c.story_id, c.name, c.description, c.version
+	FROM characters c
+	INNER JOIN characters_labels cl ON c.id = cl.character_id
+	INNER JOIN labels l ON cl.label_id = l.id
+	WHERE l.id = $1
+	`
+
+	//TODO Include sublabels in this result
+	
+	ctx, cancel := context.WithTimeout(context.Background(), TimeoutDuration)
+	defer cancel()
+	
+	rows, err := m.DB.QueryContext(ctx, query, label_id)
+	if err != nil {
+		return nil, err
+	}
+
+	defer rows.Close()
+
+	characters := []*Character{}
+
+	for rows.Next() {
+		var character Character
+
+		err := rows.Scan(
+			&character.ID,
+			&character.CreatedAt,
+			&character.Story_ID,
+			&character.Name,
+			&character.Description,
+			&character.Version,
+		)
+		if err != nil {
+			return nil, err
+		}
+
+		characters = append(characters, &character)
+	}
+
+	if err = rows.Err(); err != nil {
+		return nil, err
+	}
+
+	return characters, nil
+}	

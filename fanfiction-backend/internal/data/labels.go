@@ -255,6 +255,50 @@ func (m LabelModel) GetAllBlacklistLabel(id int64) ([]int64, error) {
 	return blacklist, nil
 }
 
+func (m LabelModel) GetAllForCharacter(character_id int64) ([]*Label, error) {
+	query := `
+	SELECT l.id, l.created_at, l.name, l.version
+	FROM labels l
+	INNER JOIN characters_labels cl ON cl.label_id = l.id
+	INNER JOIN characters c ON c.id = cl.character_id
+	WHERE c.id = $1
+	`
+
+	ctx, cancel := context.WithTimeout(context.Background(), TimeoutDuration)
+	defer cancel()
+
+	rows, err := m.DB.QueryContext(ctx, query)
+	if err != nil {
+		return nil, err
+	}
+
+	defer rows.Close()
+
+	labels := []*Label{}
+
+	for rows.Next() {
+		var label Label
+
+		err := rows.Scan(
+			&label.ID,
+			&label.CreatedAt,
+			&label.Name,
+			&label.Version,
+		)
+		if err != nil {
+			return nil, err
+		}
+
+		labels = append(labels, &label)
+	}
+
+	if err = rows.Err(); err != nil {
+		return nil, err
+	}
+
+	return labels, nil
+}
+
 func (m LabelModel) Update(label *Label) error {
 	query := `UPDATE labels
 	SET name=$1, version = version + 1
