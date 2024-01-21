@@ -7,13 +7,14 @@ import (
 )
 
 var (
-	ErrRecordNotFound    = errors.New("record not found")
-	ErrEditConflict      = errors.New("edit conflict")
-	ErrDuplicateEmail    = errors.New("duplicate email")
-	ErrDuplicateLabel    = errors.New("duplicate label")
-	ErrDuplicateStory    = errors.New("duplicate story")
-	ErrDuplicateTimeline = errors.New("duplicate timeline")
-	ErrDuplicateEvent    = errors.New("duplicate event")
+	ErrRecordNotFound     = errors.New("record not found")
+	ErrEditConflict       = errors.New("edit conflict")
+	ErrDuplicateEmail     = errors.New("duplicate email")
+	ErrDuplicateLabel     = errors.New("duplicate label")
+	ErrDuplicateStory     = errors.New("duplicate story")
+	ErrDuplicateTimeline  = errors.New("duplicate timeline")
+	ErrDuplicateEvent     = errors.New("duplicate event")
+	ErrDuplicateCharacter = errors.New("duplicate character")
 )
 
 // The amount of time given for a database command to run
