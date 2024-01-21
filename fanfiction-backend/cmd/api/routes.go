@@ -31,6 +31,17 @@ func (app *application) routes() http.Handler {
 	router.HandlerFunc(http.MethodDelete, "/v1/stories/:id", app.requireActivatedUser(app.deleteStoryHandler))
 	router.HandlerFunc(http.MethodPatch, "/v1/stories/:id", app.requireActivatedUser(app.updateStoryHandler))
 
+	router.HandlerFunc(http.MethodPost, "/v1/timelines", app.requireActivatedUser(app.createTimelineHandler))
+	router.HandlerFunc(http.MethodGet, "/v1/timelines/:id", app.requireActivatedUser(app.getTimelineHandler))
+	router.HandlerFunc(http.MethodGet, "/v1/timelines", app.requireActivatedUser(app.listTimelineHandler))
+	router.HandlerFunc(http.MethodDelete, "/v1/timelines/:id", app.requireActivatedUser(app.deleteTimelineHandler))
+	router.HandlerFunc(http.MethodPatch, "/v1/timelines/:id", app.requireActivatedUser(app.updateTimelineHandler))
+
+	router.HandlerFunc(http.MethodPost, "/v1/events", app.requireActivatedUser(app.createEventHandler))
+	router.HandlerFunc(http.MethodGet, "/v1/events/:id", app.requireActivatedUser(app.getEventHandler))
+	router.HandlerFunc(http.MethodGet, "/v1/events", app.requireActivatedUser(app.listEventHandler))
+	router.HandlerFunc(http.MethodDelete, "/v1/events/:id", app.requireActivatedUser(app.deleteEventHandler))
+	router.HandlerFunc(http.MethodPatch, "/v1/events/:id", app.requireActivatedUser(app.updateEventHandler))
 
 	router.HandlerFunc(http.MethodPost, "/v1/users", app.registerUserHandler)
 	router.HandlerFunc(http.MethodPut, "/v1/users/activated", app.activateUserHandler)

@@ -72,6 +72,47 @@ func (m TimelineModel) Get(story_id, timeline_id int64) (*Timeline, error) {
 	return &timeline, nil
 }
 
+func (m TimelineModel) GetForStory(story_id int64) ([]*Timeline, error) {
+	query := `SELECT id, created_at, story_id, name, version
+	FROM timelines
+	WHERE story_id = $1`
+
+	ctx, cancel := context.WithTimeout(context.Background(), TimeoutDuration)
+	defer cancel()
+	
+	rows, err := m.DB.QueryContext(ctx, query, story_id)
+	if err != nil {
+		return nil, err
+	}
+
+	defer rows.Close()
+
+	timelines := []*Timeline{}
+
+	for rows.Next() {
+		var timeline Timeline
+
+		err := rows.Scan(
+			&timeline.ID,
+			&timeline.CreatedAt,
+			&timeline.Story_ID,
+			&timeline.Name,
+			&timeline.Version,
+		)
+		if err != nil {
+			return nil, err
+		}
+
+		timelines = append(timelines, &timeline)
+	}
+
+	if err = rows.Err(); err != nil {
+		return nil, err
+	}
+
+	return timelines, nil
+}
+
 func (m TimelineModel) Update(timeline *Timeline) error {
 	query := `UPDATE timelines
 	SET name = $1, version = version + 1
