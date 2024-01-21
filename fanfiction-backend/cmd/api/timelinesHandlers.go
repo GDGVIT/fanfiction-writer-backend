@@ -37,6 +37,8 @@ func (app *application) createTimelineHandler(w http.ResponseWriter, r *http.Req
 		case errors.Is(err, data.ErrDuplicateTimeline):
 			v.AddError("name", "a timeline with this name already exists")
 			app.failedValidationResponse(w, r, v.Errors)
+		case errors.Is(err, data.ErrRecordNotFound):
+			app.notFoundResponse(w, r)
 		default:
 			app.serverErrorResponse(w, r, err)
 		}
@@ -188,6 +190,12 @@ func (app *application) deleteTimelineHandler(w http.ResponseWriter, r *http.Req
 		default:
 			app.serverErrorResponse(w, r, err)
 		}
+		return
+	}
+
+	err = app.writeJSON(w, http.StatusOK, envelope{"message": "Timeline successfully deleted"}, nil)
+	if err != nil {
+		app.serverErrorResponse(w, r, err)
 		return
 	}
 

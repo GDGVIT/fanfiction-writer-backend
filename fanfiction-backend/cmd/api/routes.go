@@ -23,8 +23,6 @@ func (app *application) routes() http.Handler {
 
 	// ? Should path be /v1/labels/... and /v1/sublabels/.... OR /v1/labels/label/... and /v1/labels/sublabel/.....
 
-	router.HandlerFunc(http.MethodPost, "/v1/events", app.requireActivatedUser(app.createEventHandler))
-
 	router.HandlerFunc(http.MethodPost, "/v1/stories", app.requireActivatedUser(app.createStoryHandler))
 	router.HandlerFunc(http.MethodGet, "/v1/stories/:id", app.requireActivatedUser(app.getStoryHandler))
 	router.HandlerFunc(http.MethodGet, "/v1/stories", app.requireActivatedUser(app.listStoriesHandler))

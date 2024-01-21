@@ -18,6 +18,7 @@ type Timeline struct {
 }
 
 func ValidateTimeline(v *validator.Validator, timeline *Timeline) {
+	v.Check(timeline.Story_ID != 0, "story_id", "must be provided")
 	v.Check(timeline.Name != "", "name", "must be provided")
 }
 
@@ -40,6 +41,8 @@ func (m TimelineModel) Insert(timeline *Timeline) error {
 		switch {
 		case err.Error() == `pq: duplicate key value violates unique constraint "timelines_story_id_name_key"`:
 			return ErrDuplicateTimeline
+		case err.Error() == `pq: insert or update on table "timelines" violates foreign key constraint "timelines_story_id_fkey"`:
+			return ErrRecordNotFound
 		default:
 			return err
 		}
@@ -49,7 +52,7 @@ func (m TimelineModel) Insert(timeline *Timeline) error {
 }
 
 func (m TimelineModel) Get(story_id, timeline_id int64) (*Timeline, error) {
-	query := `SELECT (id, created_at, story_id, name, version)
+	query := `SELECT id, created_at, story_id, name, version
 	FROM timelines
 	WHERE story_id = $1
 	AND id = $2`

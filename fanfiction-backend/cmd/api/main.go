@@ -100,6 +100,7 @@ func openDB(cfg config) (*sql.DB, error) {
 		" port=" + port +
 		" sslmode=disable"
 
+	dsn = os.Getenv("FFWRITER_DB_DSN") // For local purposes
 	db, err := sql.Open("postgres", dsn)
 	if err != nil {
 		return nil, err

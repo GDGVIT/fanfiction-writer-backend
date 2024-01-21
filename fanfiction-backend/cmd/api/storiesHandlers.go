@@ -131,6 +131,12 @@ func (app *application) updateStoryHandler(w http.ResponseWriter, r *http.Reques
 	story.Title = input.Title
 	story.Description = input.Description
 
+	v := validator.New()
+	if data.ValidateStory(v, story); !v.Valid() {
+		app.failedValidationResponse(w, r, v.Errors)
+		return
+	}
+
 	err = app.models.Stories.Update(story)
 	if err != nil {
 		switch {
@@ -174,7 +180,7 @@ func (app *application) deleteStoryHandler(w http.ResponseWriter, r *http.Reques
 		return
 	}
 
-	err = app.writeJSON(w, http.StatusOK, envelope{"message": "Label successfully deleted"}, nil)
+	err = app.writeJSON(w, http.StatusOK, envelope{"message": "Story successfully deleted"}, nil)
 	if err != nil {
 		app.serverErrorResponse(w, r, err)
 		return
