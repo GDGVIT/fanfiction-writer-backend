@@ -29,6 +29,7 @@ type Models struct {
 	Stories   StoryModel
 	Timelines TimelineModel
 	Events    EventModel
+	Characters CharacterModel
 }
 
 func NewModels(db *sql.DB) Models {
@@ -39,5 +40,6 @@ func NewModels(db *sql.DB) Models {
 		Stories:   StoryModel{DB: db},
 		Timelines: TimelineModel{DB: db},
 		Events:    EventModel{DB: db},
+		Characters: CharacterModel{DB: db},
 	}
 }

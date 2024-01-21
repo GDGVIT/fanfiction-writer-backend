@@ -8,10 +8,11 @@ import (
 	"github.com/GDGVIT/fanfiction-writer-backend/fanfiction-backend/internal/validator"
 )
 
-func (app *application) createTimelineHandler(w http.ResponseWriter, r *http.Request) {
+func (app *application) createCharacterHandler(w http.ResponseWriter, r *http.Request) {
 	var input struct {
-		Story_ID int64  `json:"story_id"`
-		Name     string `json:"name"`
+		Story_ID    int64  `json:"story_id"`
+		Description string `json:"description"`
+		Name        string `json:"name"`
 	}
 
 	err := app.readJSON(w, r, &input)
@@ -20,22 +21,23 @@ func (app *application) createTimelineHandler(w http.ResponseWriter, r *http.Req
 		return
 	}
 
-	timeline := &data.Timeline{
-		Story_ID: input.Story_ID,
-		Name:     input.Name,
+	character := &data.Character{
+		Story_ID:    input.Story_ID,
+		Description: input.Description,
+		Name:        input.Name,
 	}
 
 	v := validator.New()
-	if data.ValidateTimeline(v, timeline); !v.Valid() {
+	if data.ValidateCharacter(v, character); !v.Valid() {
 		app.failedValidationResponse(w, r, v.Errors)
 		return
 	}
 
-	err = app.models.Timelines.Insert(timeline)
+	err = app.models.Characters.Insert(character)
 	if err != nil {
 		switch {
-		case errors.Is(err, data.ErrDuplicateTimeline):
-			v.AddError("name", "a timeline with this name already exists")
+		case errors.Is(err, data.ErrDuplicateCharacter):
+			v.AddError("name", "a character with this name already exists")
 			app.failedValidationResponse(w, r, v.Errors)
 		case errors.Is(err, data.ErrRecordNotFound):
 			app.notFoundResponse(w, r)
@@ -45,14 +47,14 @@ func (app *application) createTimelineHandler(w http.ResponseWriter, r *http.Req
 		return
 	}
 
-	err = app.writeJSON(w, http.StatusCreated, envelope{"timeline": timeline}, nil)
+	err = app.writeJSON(w, http.StatusCreated, envelope{"character": character}, nil)
 	if err != nil {
 		app.serverErrorResponse(w, r, err)
 		return
 	}
 }
 
-func (app *application) getTimelineHandler(w http.ResponseWriter, r *http.Request) {
+func (app *application) getCharacterHandler(w http.ResponseWriter, r *http.Request) {
 	id, err := app.readIDParam(r)
 	if err != nil {
 		app.notFoundResponse(w, r)
@@ -69,7 +71,7 @@ func (app *application) getTimelineHandler(w http.ResponseWriter, r *http.Reques
 		return
 	}
 
-	timeline, err := app.models.Timelines.Get(input.Story_ID, id)
+	character, err := app.models.Characters.Get(input.Story_ID, id)
 	if err != nil {
 		switch {
 		case errors.Is(err, data.ErrRecordNotFound):
@@ -80,14 +82,14 @@ func (app *application) getTimelineHandler(w http.ResponseWriter, r *http.Reques
 		return
 	}
 
-	err = app.writeJSON(w, http.StatusOK, envelope{"timeline": timeline}, nil)
+	err = app.writeJSON(w, http.StatusOK, envelope{"character": character}, nil)
 	if err != nil {
 		app.serverErrorResponse(w, r, err)
 		return
 	}
 }
 
-func (app *application) listTimelineHandler(w http.ResponseWriter, r *http.Request) {
+func (app *application) listCharacterHandler(w http.ResponseWriter, r *http.Request) {
 	var input struct {
 		Story_ID int64 `json:"story_id"`
 	}
@@ -98,20 +100,20 @@ func (app *application) listTimelineHandler(w http.ResponseWriter, r *http.Reque
 		return
 	}
 
-	timelines, err := app.models.Timelines.GetForStory(input.Story_ID)
+	characters, err := app.models.Characters.GetForStory(input.Story_ID)
 	if err != nil {
 		app.serverErrorResponse(w, r, err)
 		return
 	}
 
-	err = app.writeJSON(w, http.StatusOK, envelope{"timelines": timelines}, nil)
+	err = app.writeJSON(w, http.StatusOK, envelope{"characters": characters}, nil)
 	if err != nil {
 		app.serverErrorResponse(w, r, err)
 		return
 	}
 }
 
-func (app *application) updateTimelineHandler(w http.ResponseWriter, r *http.Request) {
+func (app *application) updateCharacterHandler(w http.ResponseWriter, r *http.Request) {
 	id, err := app.readIDParam(r)
 	if err != nil {
 		app.serverErrorResponse(w, r, err)
@@ -119,8 +121,9 @@ func (app *application) updateTimelineHandler(w http.ResponseWriter, r *http.Req
 	}
 
 	var input struct {
-		Story_ID int64  `json:"story_id"`
-		Name     string `json:"name"`
+		Story_ID    int64  `json:"story_id"`
+		Description string `json:"description"`
+		Name        string `json:"name"`
 	}
 
 	err = app.readJSON(w, r, &input)
@@ -129,7 +132,7 @@ func (app *application) updateTimelineHandler(w http.ResponseWriter, r *http.Req
 		return
 	}
 
-	timeline, err := app.models.Timelines.Get(input.Story_ID, id)
+	character, err := app.models.Characters.Get(input.Story_ID, id)
 	if err != nil {
 		switch {
 		case errors.Is(err, data.ErrRecordNotFound):
@@ -140,20 +143,21 @@ func (app *application) updateTimelineHandler(w http.ResponseWriter, r *http.Req
 		return
 	}
 
-	timeline.Name = input.Name
+	character.Name = input.Name
+	character.Description = input.Description
 
 	v := validator.New()
-	if data.ValidateTimeline(v, timeline); !v.Valid() {
+	if data.ValidateCharacter(v, character); !v.Valid() {
 		app.failedValidationResponse(w, r, v.Errors)
 		return
 	}
 
-	err = app.models.Timelines.Update(timeline)
+	err = app.models.Characters.Update(character)
 	if err != nil {
 		switch {
-		case errors.Is(err, data.ErrDuplicateTimeline):
+		case errors.Is(err, data.ErrDuplicateCharacter):
 			v := validator.New()
-			v.AddError("timeline", "a timeline with this name already exists")
+			v.AddError("character", "a character with this name already exists")
 			app.failedValidationResponse(w, r, v.Errors)
 		case errors.Is(err, data.ErrEditConflict):
 			app.editConflictResponse(w, r)
@@ -163,7 +167,7 @@ func (app *application) updateTimelineHandler(w http.ResponseWriter, r *http.Req
 		return
 	}
 
-	err = app.writeJSON(w, http.StatusOK, envelope{"Timeline": timeline}, nil)
+	err = app.writeJSON(w, http.StatusOK, envelope{"character": character}, nil)
 	if err != nil {
 		app.serverErrorResponse(w, r, err)
 		return
@@ -171,7 +175,7 @@ func (app *application) updateTimelineHandler(w http.ResponseWriter, r *http.Req
 
 }
 
-func (app *application) deleteTimelineHandler(w http.ResponseWriter, r *http.Request) {
+func (app *application) deleteCharacterHandler(w http.ResponseWriter, r *http.Request) {
 	id, err := app.readIDParam(r)
 	if err != nil {
 		app.notFoundResponse(w, r)
@@ -188,7 +192,7 @@ func (app *application) deleteTimelineHandler(w http.ResponseWriter, r *http.Req
 		return
 	}
 
-	err = app.models.Timelines.Delete(input.Story_ID, id)
+	err = app.models.Characters.Delete(input.Story_ID, id)
 	if err != nil {
 		switch {
 		case errors.Is(err, data.ErrRecordNotFound):
@@ -199,7 +203,7 @@ func (app *application) deleteTimelineHandler(w http.ResponseWriter, r *http.Req
 		return
 	}
 
-	err = app.writeJSON(w, http.StatusOK, envelope{"message": "Timeline successfully deleted"}, nil)
+	err = app.writeJSON(w, http.StatusOK, envelope{"message": "Character successfully deleted"}, nil)
 	if err != nil {
 		app.serverErrorResponse(w, r, err)
 		return
