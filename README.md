@@ -15,12 +15,11 @@
 
 ## Implemented Features(Remove once complete)
 - [x] Healthcheck
-- [x] Error Responses for status codes 500(server error), 404(notfound), 405(methodnot), 400(badrequest), 422(failvalidation)
+- [x] Error Responses for status codes 500(server error), 404(notfound), 405(methodnot), 400(badrequest), 422(failvalidation), 401(unauthorized), 403(forbidden)
 - [x] Helper functions for read/write JSON
 - [x] Validation package for email, struct fields, etc
-- [ ] Email for activation token
 - [ ] Middleware
-  - [ ] Auth
+  - [x] Auth
   - [ ] Rate limiter
   - [ ] Panic Recovery
 - [ ] Resend activation email 
@@ -37,7 +36,6 @@
       - [ ] Specific error message instead of generic for passing created label id as a sublabel/blacklist
       - [ ] \ Error message for passing labels that don't exist (quietly ignored)
       - [ ] \ Change sublabel/blacklist to take in names instead of IDs
-      - [ ] Figure out how to handle cases where partial creation is done in DB
   - [x] Get Label Handler + DB
       - [x] Sublabel and blacklist autocalled, as well as standalone funcs
       - [x] Get list of all labels
@@ -51,15 +49,23 @@
   - [ ] Email sending
   - [x] User activation
   - [ ] Session tokens
-- [ ] Events
+- [x] Events
   - [x] DB
-  - [ ] Handler
-- [ ] Timelines
+  - [x] Handler
+- [x] Timelines
   - [x] DB
-  - [ ] Handler
-- [ ] Stories  
+  - [x] Handler
+- [x] Stories  
   - [x] DB
-  - [ ] Handler
+  - [x] Handler
+- [x] Characters
+  - [x] DB
+  - [x] Handler
+- [ ] CharLabel
+  - [x] Create
+  - [x] Get Chars
+  - [x] Get Labels
+  - [ ] Delete 
 
 ## Features
 - [ ]  < feature >
@@ -75,13 +81,6 @@
 
 
 ## Running
-
-#### How to run(Delete this part as well once its done):
-1. Have docker 
-2. run `docker compose up` (this will run the db, but the migration tool will fail because it runs before the db sets up, even though it depends on the dp, idk how that works)
-3. run `docker compose run migrate` (this will run only the migrate tool, which links to the volume in the db and runs the appropriate migrations)
-4. run `docker ps`, and using the container id of the db container, run `docker exec -it [Container_ID] psql -U ffwriter FF-Writer` (this will open the psql shell in the docker container)
-5. run `\dt` and you will see all the tables have been migrated.
 
 < directions to install > 
 ```bash
