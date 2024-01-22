@@ -41,6 +41,8 @@ func (m CharacterModel) Insert(character *Character) error {
 		switch {
 		case err.Error() == `pq: duplicate key value violates unique constraint "characters_story_id_name_key"`:
 			return ErrDuplicateCharacter
+		case err.Error() == `pq: insert or update on table "characters" violates foreign key constraint "characters_story_id_fkey"`:
+			return ErrRecordNotFound
 		default:
 			return err
 		}
@@ -177,7 +179,7 @@ func (m CharacterModel) GetAllForLabel(label_id int64) ([]*Character, error) {
 	`
 
 	//TODO Include sublabels in this result
-	
+
 	ctx, cancel := context.WithTimeout(context.Background(), TimeoutDuration)
 	defer cancel()
 	
