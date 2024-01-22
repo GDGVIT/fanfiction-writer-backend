@@ -52,7 +52,7 @@ func main() {
 
 	env := os.Getenv("ENV")
 	if env == "" {
-		env = "development"
+		cfg.env = "development"
 	}
 
 	flag.IntVar(&cfg.db.maxOpenConns, "db-max-open-conns", 10, "PostgreSQL max open connections")
@@ -102,7 +102,9 @@ func openDB(cfg config) (*sql.DB, error) {
 		" port=" + port +
 		" sslmode=disable"
 
-	dsn = os.Getenv("FFWRITER_DB_DSN") // For local purposes
+	if cfg.env == "development" {
+		dsn = os.Getenv("FFWRITER_DB_DSN") // For local purposes
+	}
 	db, err := sql.Open("postgres", dsn)
 	if err != nil {
 		return nil, err

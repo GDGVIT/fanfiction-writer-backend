@@ -19,6 +19,7 @@ services:
       - DB_PASSWORD=password
       - DB_NAME=FF-Writer
       - DB_PORT=5432
+      - ENV="production"
     depends_on:
       - db
     networks:
