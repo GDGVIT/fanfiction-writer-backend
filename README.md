@@ -18,11 +18,13 @@
 - [x] Error Responses for status codes 500(server error), 404(notfound), 405(methodnot), 400(badrequest), 422(failvalidation), 401(unauthorized), 403(forbidden)
 - [x] Helper functions for read/write JSON
 - [x] Validation package for email, struct fields, etc
+- [x] Graceful shutdown(including bg tasks)
+- [x] Custom JSON logger
 - [ ] Middleware
   - [x] Auth
   - [ ] Rate limiter
-  - [ ] Panic Recovery
-- [ ] Resend activation email 
+  - [x] Panic Recovery
+- [x] Resend activation email 
 - [x] Routes
   - http.MethodGet, "/v1/healthcheck", app.healthcheckHandler
   - http.MethodGet, "/v1/labels/:id", app.showLabelHandler
@@ -46,9 +48,10 @@
       - If list of IDs passed, only those deleted, else all are deleted
 - [x] Users 
   - [x] Create User Handler + DB
-  - [ ] Email sending
+  - [x] Email sending
   - [x] User activation
   - [ ] Session tokens
+  - [x] Forgot Password
 - [x] Events
   - [x] DB
   - [x] Handler
@@ -65,7 +68,8 @@
   - [x] Create
   - [x] Get Chars
   - [x] Get Labels
-  - [ ] Delete 
+  - [x] Delete 
+  - [ ] 
 
 ## Features
 - [ ]  < feature >
