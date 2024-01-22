@@ -18,7 +18,9 @@ func (app *application) routes() http.Handler {
 	router.HandlerFunc(http.MethodPost, "/v1/labels", app.requireActivatedUser(app.createLabelHandler))
 	router.HandlerFunc(http.MethodDelete, "/v1/labels/:id", app.requireActivatedUser(app.deleteLabelHandler))
 	router.HandlerFunc(http.MethodPatch, "/v1/labels/:id", app.requireActivatedUser(app.updateLabelHandler))
-	// router.HandlerFunc(http.MethodPost, "/v1/sublabel/:id")
+
+	router.HandlerFunc(http.MethodPost, "/v1/sublabels/", app.requireActivatedUser(app.createSubLabelHandler))
+	router.HandlerFunc(http.MethodDelete, "/v1/sublabels/", app.requireActivatedUser(app.deleteSubLabelHandler))
 	// router.HandlerFunc(http.MethodPost, "/v1/blacklist/:id")
 
 	// ? Should path be /v1/labels/... and /v1/sublabels/.... OR /v1/labels/label/... and /v1/labels/sublabel/.....
@@ -34,7 +36,7 @@ func (app *application) routes() http.Handler {
 	router.HandlerFunc(http.MethodGet, "/v1/timelines", app.requireActivatedUser(app.listTimelineHandler))
 	router.HandlerFunc(http.MethodDelete, "/v1/timelines/:id", app.requireActivatedUser(app.deleteTimelineHandler))
 	router.HandlerFunc(http.MethodPatch, "/v1/timelines/:id", app.requireActivatedUser(app.updateTimelineHandler))
-	
+
 	router.HandlerFunc(http.MethodPost, "/v1/events", app.requireActivatedUser(app.createEventHandler))
 	router.HandlerFunc(http.MethodGet, "/v1/events/:id", app.requireActivatedUser(app.getEventHandler))
 	router.HandlerFunc(http.MethodGet, "/v1/events", app.requireActivatedUser(app.listEventHandler))
@@ -51,7 +53,7 @@ func (app *application) routes() http.Handler {
 	router.HandlerFunc(http.MethodGet, "/v1/charlabels/characters", app.requireActivatedUser(app.listCharacterByLabelsHandler))
 	router.HandlerFunc(http.MethodGet, "/v1/charlabels/labels", app.requireActivatedUser(app.listLabelsbyCharacterHandler))
 	router.HandlerFunc(http.MethodDelete, "/v1/charlabels", app.requireActivatedUser(app.deleteCharLabelHandler))
-	
+
 	router.HandlerFunc(http.MethodPost, "/v1/users", app.registerUserHandler)
 	router.HandlerFunc(http.MethodPut, "/v1/users/activated", app.activateUserHandler)
 	router.HandlerFunc(http.MethodPut, "/v1/users/password", app.updateUserPasswordHandler)

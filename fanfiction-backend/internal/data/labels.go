@@ -78,7 +78,18 @@ func (m LabelModel) CreateSublabel(label_id int64, sublabel_ids ...int64) error 
 	defer cancel()
 
 	_, err := m.DB.ExecContext(ctx, query, label_id, pq.Array(sublabel_ids))
-	return err
+	if err != nil {
+		switch {
+		case err.Error() == `pq: insert or update on table "sublabels" violates foreign key constraint "sublabels_label_id_fkey"`:
+			return ErrRecordNotFound
+		case err.Error() == `pq: duplicate key value violates unique constraint "sublabels_pkey"`:
+			return ErrDuplicateLabel
+		default:
+			return err
+		}
+	}
+
+	return nil
 }
 
 // Create the blacklist of a label

@@ -64,6 +64,40 @@ func (app *application) createLabelHandler(w http.ResponseWriter, r *http.Reques
 	}
 }
 
+func (app *application) createSubLabelHandler(w http.ResponseWriter, r *http.Request) {
+	var input struct {
+		Label_ID    int64   `json:"label_id"`
+		Sublabel_ID []int64 `json:"sublabel_id"`
+	}
+
+	err := app.readJSON(w, r, &input)
+	if err != nil {
+		app.badRequestResponse(w, r, err)
+		return
+	}
+
+	err = app.models.Labels.CreateSublabel(input.Label_ID, input.Sublabel_ID...)
+	if err != nil {
+		switch {
+			case errors.Is(err, data.ErrRecordNotFound):
+				app.notFoundResponse(w, r)
+			case errors.Is(err, data.ErrDuplicateLabel):
+				v := validator.New()
+				v.AddError("sublabel", "a sublabel entry with this name already exists")
+				app.failedValidationResponse(w, r, v.Errors)
+			default:
+				app.serverErrorResponse(w, r, err)
+		}
+		return
+	}
+
+	err = app.writeJSON(w, http.StatusCreated, envelope{"labels": "label sublabel(s) added."}, nil)
+	if err != nil {
+		app.serverErrorResponse(w, r, err)
+		return
+	}
+}
+
 // showLabelHandler is the handler used to show a specific label based on labelID
 func (app *application) showLabelHandler(w http.ResponseWriter, r *http.Request) {
 	id, err := app.readIDParam(r)
@@ -209,6 +243,36 @@ func (app *application) deleteLabelHandler(w http.ResponseWriter, r *http.Reques
 	}
 
 	err = app.writeJSON(w, http.StatusOK, envelope{"message": "Label successfully deleted"}, nil)
+	if err != nil {
+		app.serverErrorResponse(w, r, err)
+		return
+	}
+}
+
+func (app *application) deleteSubLabelHandler(w http.ResponseWriter, r *http.Request) {
+	var input struct {
+		Label_ID    int64   `json:"label_id"`
+		Sublabel_ID []int64 `json:"sublabel_id"`
+	}
+
+	err := app.readJSON(w, r, &input)
+	if err != nil {
+		app.badRequestResponse(w, r, err)
+		return
+	}
+
+	err = app.models.Labels.DeleteSublabel(input.Label_ID, input.Sublabel_ID...)
+	if err != nil {
+		switch {
+		case errors.Is(err, data.ErrRecordNotFound):
+			app.notFoundResponse(w, r)
+		default:
+			app.serverErrorResponse(w, r, err)
+		}
+		return
+	}
+
+	err = app.writeJSON(w, http.StatusOK, envelope{"labels": "labels sublabel(s) deleted."}, nil)
 	if err != nil {
 		app.serverErrorResponse(w, r, err)
 		return
