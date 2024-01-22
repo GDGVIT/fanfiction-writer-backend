@@ -7,5 +7,6 @@ CREATE TABLE IF NOT EXISTS characters
     description text NOT NULL DEFAULT '',
     version integer NOT NULL DEFAULT 1,
     PRIMARY KEY (id),
+    FOREIGN KEY (story_id) REFERENCES stories (id) MATCH SIMPLE ON DELETE CASCADE,
     UNIQUE (story_id, name)
 );
