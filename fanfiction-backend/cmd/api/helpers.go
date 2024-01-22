@@ -53,7 +53,7 @@ func (app *application) readJSON(w http.ResponseWriter, r *http.Request, dst int
 
 	dec := json.NewDecoder(r.Body)
 	dec.DisallowUnknownFields()
-	
+
 	err := dec.Decode(dst)
 	if err != nil {
 		var syntaxError *json.SyntaxError
@@ -68,7 +68,7 @@ func (app *application) readJSON(w http.ResponseWriter, r *http.Request, dst int
 			return errors.New("body contains badly-formed JSON")
 
 		case errors.As(err, &unmarshalTypeError): // JSON value is the wrong type for the target destination
-			if unmarshalTypeError.Field != ""{
+			if unmarshalTypeError.Field != "" {
 				return fmt.Errorf("body contains incorrect JSON type for field %q", unmarshalTypeError.Field)
 			}
 			return fmt.Errorf("body contains incorrect JSON type (at character %d)", unmarshalTypeError.Offset)
@@ -99,3 +99,16 @@ func (app *application) readJSON(w http.ResponseWriter, r *http.Request, dst int
 
 	return nil
 }
+
+func (app *application) background(fn func()) {
+	go func() {
+		defer func() {
+			if err := recover(); err != nil {
+				app.logger.PrintError(fmt.Errorf("%s", err), nil)
+			}
+		}()
+
+		fn()
+	}()
+}
+	

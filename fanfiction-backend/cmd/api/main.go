@@ -10,6 +10,7 @@ import (
 
 	"github.com/GDGVIT/fanfiction-writer-backend/fanfiction-backend/internal/data"
 	"github.com/GDGVIT/fanfiction-writer-backend/fanfiction-backend/internal/jsonlog"
+	"github.com/GDGVIT/fanfiction-writer-backend/fanfiction-backend/internal/mailer"
 
 	_ "github.com/lib/pq"
 )
@@ -33,6 +34,7 @@ type application struct {
 	config config
 	logger *jsonlog.Logger
 	models data.Models
+	mailer mailer.Mailer
 }
 
 func main() {
@@ -40,8 +42,8 @@ func main() {
 
 	var cfg config
 
-	port := os.Getenv("PORT")
-	cfg.port, _ = strconv.Atoi(port)
+	webPort := os.Getenv("PORT")
+	cfg.port, _ = strconv.Atoi(webPort)
 	if cfg.port == 0 {
 		cfg.port = 4000
 	}
@@ -65,10 +67,17 @@ func main() {
 	defer db.Close()
 	logger.PrintInfo("Database connection pool established", nil)
 
+	host := "sandbox.smtp.mailtrap.io"
+	port := 2525
+	username := "5c5e586e13d508"
+	password := "a196a1fa87d620"
+	sender := "FFWriter <no-reply@ffwriter.net>"
+
 	app := &application{
 		config: cfg,
 		logger: logger,
 		models: data.NewModels(db),
+		mailer: mailer.New(host, port, username, password, sender),
 	}
 
 	err = app.serve()
