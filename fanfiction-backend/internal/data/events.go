@@ -5,6 +5,8 @@ import (
 	"database/sql"
 	"errors"
 	"time"
+
+	"github.com/GDGVIT/fanfiction-writer-backend/fanfiction-backend/internal/validator"
 )
 
 type Event struct {
@@ -16,6 +18,12 @@ type Event struct {
 	Description string    `json:"description,omitempty"`
 	Details     string    `json:"details,omitempty"`
 	Version     int       `json:"-"`
+}
+
+func ValidateEvent(v *validator.Validator, event *Event) {
+	v.Check(event.Timeline_ID != 0, "timeline_id", "must be provided")
+	v.Check(event.EventTime != time.Time{}, "event_time", "must be provided")
+	v.Check(event.Title != "", "title", "must be provided")
 }
 
 type EventModel struct {
@@ -46,18 +54,25 @@ func (m EventModel) Insert(event *Event) error {
 
 }
 
-func (m EventModel) Get(event_id, timeline_id int64) (*Event, error) {
+func (m EventModel) Get(event_id int64) (*Event, error) {
 	query := `SELECT id, created_at, timeline_id, event_time, title, description, details, version
 	FROM events
-	WHERE timeline_id = $1
-	AND id = $2`
+	WHERE id = $1`
 
 	var event Event
 
 	ctx, cancel := context.WithTimeout(context.Background(), TimeoutDuration)
 	defer cancel()
 
-	err := m.DB.QueryRowContext(ctx, query, timeline_id, event_id).Scan(&event.ID, &event.CreatedAt, &event.EventTime, &event.Title, &event.Description, &event.Details, &event.Version)
+	err := m.DB.QueryRowContext(ctx, query, event_id).Scan(
+		&event.ID,
+		&event.CreatedAt,
+		&event.Timeline_ID,
+		&event.EventTime,
+		&event.Title,
+		&event.Description,
+		&event.Details,
+		&event.Version)
 
 	if err != nil {
 		switch {
@@ -71,13 +86,57 @@ func (m EventModel) Get(event_id, timeline_id int64) (*Event, error) {
 	return &event, nil
 }
 
+func (m EventModel) GetForTimeline(timeline_id int64) ([]*Event, error) {
+	query := `SELECT id, created_at, timeline_id, event_time, title, description, details, version
+	FROM events
+	WHERE timeline_id = $1
+	ORDER BY event_time ASC`
+
+	ctx, cancel := context.WithTimeout(context.Background(), TimeoutDuration)
+	defer cancel()
+
+	rows, err := m.DB.QueryContext(ctx, query, timeline_id)
+	if err != nil {
+		return nil, err
+	}
+
+	defer rows.Close()
+
+	events := []*Event{}
+
+	for rows.Next() {
+		var event Event
+
+		err := rows.Scan(
+			&event.ID,
+			&event.CreatedAt,
+			&event.Timeline_ID,
+			&event.EventTime,
+			&event.Title,
+			&event.Description,
+			&event.Details,
+			&event.Version)
+		if err != nil {
+			return nil, err
+		}
+
+		events = append(events, &event)
+	}
+
+	if err = rows.Err(); err != nil {
+		return nil, err
+	}
+
+	return events, nil
+}
+
 func (m EventModel) Update(event *Event) error {
 	query := `UPDATE events
-	SET event_time = $1, title = $2, description = $3, details = $4, version = version + 1
-	WHERE timeline_id = $5 AND id = $6 and version = $7
+	SET event_time = $1, timeline_id = $2, title = $3, description = $4, details = $5, version = version + 1
+	WHERE id = $6 and version = $7
 	RETURNING version`
 
-	args := []interface{}{event.EventTime, event.Title, event.Description, event.Details, event.Timeline_ID, event.ID, event.Version}
+	args := []interface{}{event.EventTime, event.Timeline_ID, event.Title, event.Description, event.Details, event.ID, event.Version}
 
 	ctx, cancel := context.WithTimeout(context.Background(), TimeoutDuration)
 	defer cancel()
