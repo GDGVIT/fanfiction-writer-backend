@@ -6,14 +6,13 @@ import (
 	"crypto/sha256"
 	"database/sql"
 	"encoding/base32"
-	"errors"
 	"time"
 
 	"github.com/GDGVIT/fanfiction-writer-backend/fanfiction-backend/internal/validator"
 )
 
 const (
-	ScopeActivation = "activation"
+	ScopeActivation     = "activation"
 	ScopeAuthentication = "authentication"
 )
 
@@ -88,42 +87,4 @@ func (m TokenModel) DeleteAllForUser(scope string, userID int64) error {
 
 	_, err := m.DB.ExecContext(ctx, query, scope, userID)
 	return err
-}
-
-func (m UserModel) GetForToken(tokenScope, tokenPlaintext string) (*User, error) {
-	tokenHash := sha256.Sum256([]byte(tokenPlaintext))
-
-	query := `SELECT users.id, users.created_at, users.name, users.email, users.password_hash, users.activated, users.version
-	FROM users
-	INNER JOIN tokens
-	ON users.id = tokens.user_id
-	WHERE tokens.hash=$1 
-	AND tokens.scope=$2
-	AND tokens.expiry > $3`
-
-	args := []interface{}{tokenHash[:], tokenScope, time.Now()}
-
-	ctx, cancel := context.WithTimeout(context.Background(), TimeoutDuration)
-	defer cancel()
-
-	var user User
-	err := m.DB.QueryRowContext(ctx, query, args...).Scan(
-		&user.ID,
-		&user.CreatedAt,
-		&user.Name,
-		&user.Email,
-		&user.Password.hash,
-		&user.Activated,
-		&user.Version,
-	)
-	if err != nil {
-		switch {
-		case errors.Is(err, sql.ErrNoRows):
-			return nil, ErrRecordNotFound
-		default:
-			return nil, err
-		}
-	}
-
-	return &user, nil
 }

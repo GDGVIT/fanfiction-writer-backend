@@ -60,15 +60,18 @@ func (app *application) registerUserHandler(w http.ResponseWriter, r *http.Reque
 		return
 	}
 
-	// TODO Sending of email. For now activation token is written in the JSON response
 	app.background(func() {
-		err = app.mailer.Send(user.Email, "user_welcome.tmpl", user)
+		data := map[string]interface{}{
+			"activationToken": token.Plaintext,
+		}
+
+		err = app.mailer.Send(user.Email, "user_welcome.tmpl", data)
 		if err != nil {
 			app.logger.PrintError(err, nil)
 		}
 	})
 
-	err = app.writeJSON(w, http.StatusAccepted, envelope{"User": user, "Token": token}, nil)
+	err = app.writeJSON(w, http.StatusAccepted, envelope{"User": user}, nil)
 	if err != nil {
 		app.serverErrorResponse(w, r, err)
 		return
