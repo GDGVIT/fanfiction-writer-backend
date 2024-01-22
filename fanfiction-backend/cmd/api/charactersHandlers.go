@@ -68,7 +68,16 @@ func (app *application) createCharLabelHandler(w http.ResponseWriter, r *http.Re
 
 	err = app.models.Characters.InsertCharLabels(input.Character_ID, input.Label_ID...)
 	if err != nil {
-		app.serverErrorResponse(w, r, err)
+		switch {
+			case errors.Is(err, data.ErrRecordNotFound):
+				app.notFoundResponse(w, r)
+			case errors.Is(err, data.ErrDuplicateLabel):
+				v := validator.New()
+				v.AddError("charlabel", "a character-label entry with this name already exists")
+				app.failedValidationResponse(w, r, v.Errors)
+			default:
+				app.serverErrorResponse(w, r, err)
+		}
 		return
 	}
 

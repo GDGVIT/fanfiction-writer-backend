@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"errors"
+	"fmt"
 	"time"
 
 	"github.com/GDGVIT/fanfiction-writer-backend/fanfiction-backend/internal/validator"
@@ -58,9 +59,21 @@ func (m CharacterModel) InsertCharLabels(character_id int64, label_id ...int64) 
 
 	ctx, cancel := context.WithTimeout(context.Background(), TimeoutDuration)
 	defer cancel()
-	
+
 	_, err := m.DB.ExecContext(ctx, query, character_id, pq.Array(label_id))
-	return err
+	fmt.Println(err)
+	if err != nil {
+		switch {
+		case err.Error() == `pq: insert or update on table "characters_labels" violates foreign key constraint "characters_labels_character_id_fkey""`:
+			return ErrRecordNotFound
+		case err.Error() == `pq: duplicate key value violates unique constraint "characters_labels_pkey"`:
+			return ErrDuplicateLabel
+		default:
+			return err
+		}
+	}
+
+	return nil
 }
 
 func (m CharacterModel) Get(story_id, character_id int64) (*Character, error) {
@@ -129,7 +142,6 @@ func (m CharacterModel) GetForStory(story_id int64) ([]*Character, error) {
 	return characters, nil
 }
 
-
 func (m CharacterModel) GetAllForLabel(label_id int64) ([]*Character, error) {
 	query := `
 	SELECT DISTINCT c.id, c.created_at, c.story_id, c.name, c.description, c.version
@@ -144,7 +156,7 @@ func (m CharacterModel) GetAllForLabel(label_id int64) ([]*Character, error) {
 
 	ctx, cancel := context.WithTimeout(context.Background(), TimeoutDuration)
 	defer cancel()
-	
+
 	rows, err := m.DB.QueryContext(ctx, query, label_id)
 	if err != nil {
 		return nil, err
@@ -177,8 +189,7 @@ func (m CharacterModel) GetAllForLabel(label_id int64) ([]*Character, error) {
 	}
 
 	return characters, nil
-}	
-
+}
 
 func (m CharacterModel) Update(character *Character) error {
 	query := `UPDATE characters
@@ -240,7 +251,7 @@ func (m CharacterModel) DeleteCharLabels(character_id int64, label_id ...int64) 
 	defer cancel()
 
 	result, err := m.DB.ExecContext(ctx, query, character_id, pq.Array(label_id))
-	
+
 	if err != nil {
 		return err
 	}
