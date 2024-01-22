@@ -10,5 +10,5 @@ CREATE TABLE IF NOT EXISTS labels
     version integer NOT NULL DEFAULT 1,
     PRIMARY KEY (id),
     FOREIGN KEY (story_id) REFERENCES stories (id) MATCH SIMPLE ON DELETE CASCADE,
-    UNIQUE (name)
+    UNIQUE (story_id, name)
 );

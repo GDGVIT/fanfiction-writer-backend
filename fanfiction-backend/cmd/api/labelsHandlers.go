@@ -19,6 +19,7 @@ import (
 func (app *application) createLabelHandler(w http.ResponseWriter, r *http.Request) {
 	var input struct {
 		Name      string  `json:"name"`
+		StoryID   int64   `json:"story_id"`
 		SubLabels []int64 `json:"sublabels"`
 		Blacklist []int64 `json:"blacklist"`
 	}
@@ -31,6 +32,7 @@ func (app *application) createLabelHandler(w http.ResponseWriter, r *http.Reques
 
 	label := &data.Label{
 		Name:      input.Name,
+		StoryID:   input.StoryID,
 		SubLabels: input.SubLabels,
 		Blacklist: input.Blacklist,
 	}
@@ -88,7 +90,17 @@ func (app *application) showLabelHandler(w http.ResponseWriter, r *http.Request)
 }
 
 func (app *application) listLabelsHandler(w http.ResponseWriter, r *http.Request) {
-	labels, err := app.models.Labels.GetAllLabels()
+	var input struct {
+		StoryID int64 `json:"story_id"`
+	}
+
+	err := app.readJSON(w, r, &input)
+	if err != nil {
+		app.badRequestResponse(w, r, err)
+		return
+	}
+
+	labels, err := app.models.Labels.GetAllLabels(input.StoryID)
 	if err != nil {
 		app.serverErrorResponse(w, r, err)
 		return
@@ -101,7 +113,7 @@ func (app *application) listLabelsHandler(w http.ResponseWriter, r *http.Request
 	}
 }
 
-func (app *application) listLabelsbyCharacterHandler(w http.ResponseWriter, r *http.Request)  {
+func (app *application) listLabelsbyCharacterHandler(w http.ResponseWriter, r *http.Request) {
 	var input struct {
 		Character_ID int64 `json:"character_id"`
 	}
@@ -117,14 +129,13 @@ func (app *application) listLabelsbyCharacterHandler(w http.ResponseWriter, r *h
 		app.serverErrorResponse(w, r, err)
 		return
 	}
-	
+
 	err = app.writeJSON(w, http.StatusOK, envelope{"labels": labels}, nil)
 	if err != nil {
 		app.serverErrorResponse(w, r, err)
 		return
 	}
 }
-
 
 func (app *application) updateLabelHandler(w http.ResponseWriter, r *http.Request) {
 	id, err := app.readIDParam(r)
