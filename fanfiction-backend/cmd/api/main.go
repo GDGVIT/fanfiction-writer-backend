@@ -6,6 +6,7 @@ import (
 	"flag"
 	"os"
 	"strconv"
+	"sync"
 	"time"
 
 	"github.com/GDGVIT/fanfiction-writer-backend/fanfiction-backend/internal/data"
@@ -35,6 +36,7 @@ type application struct {
 	logger *jsonlog.Logger
 	models data.Models
 	mailer mailer.Mailer
+	wg     sync.WaitGroup
 }
 
 func main() {
