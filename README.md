@@ -35,9 +35,6 @@
 - [x] Labels
   - [x] Create Label Handler + DB
       - [x] Sublabel and blacklist autocalled, as well as standalone funcs
-      - [ ] Specific error message instead of generic for passing created label id as a sublabel/blacklist
-      - [ ] \ Error message for passing labels that don't exist (quietly ignored)
-      - [ ] \ Change sublabel/blacklist to take in names instead of IDs
   - [x] Get Label Handler + DB
       - [x] Sublabel and blacklist autocalled, as well as standalone funcs
       - [x] Get list of all labels
@@ -50,7 +47,7 @@
   - [x] Create User Handler + DB
   - [x] Email sending
   - [x] User activation
-  - [ ] Session tokens
+  - [x] Session tokens
   - [x] Forgot Password
 - [x] Events
   - [x] DB
@@ -64,12 +61,14 @@
 - [x] Characters
   - [x] DB
   - [x] Handler
-- [ ] CharLabel
+- [x] CharLabel
   - [x] Create
   - [x] Get Chars
   - [x] Get Labels
   - [x] Delete 
-  - [ ] 
+- [x] Sublabel
+  - [x] Create
+  - [x] Delete
 
 ## Features
 - [ ]  < feature >
