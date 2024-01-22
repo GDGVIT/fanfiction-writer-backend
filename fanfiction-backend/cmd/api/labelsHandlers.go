@@ -99,8 +99,32 @@ func (app *application) listLabelsHandler(w http.ResponseWriter, r *http.Request
 		app.serverErrorResponse(w, r, err)
 		return
 	}
-
 }
+
+func (app *application) listLabelsbyCharacterHandler(w http.ResponseWriter, r *http.Request)  {
+	var input struct {
+		Character_ID int64 `json:"character_id"`
+	}
+
+	err := app.readJSON(w, r, &input)
+	if err != nil {
+		app.badRequestResponse(w, r, err)
+		return
+	}
+
+	labels, err := app.models.Labels.GetAllForCharacter(input.Character_ID)
+	if err != nil {
+		app.serverErrorResponse(w, r, err)
+		return
+	}
+	
+	err = app.writeJSON(w, http.StatusOK, envelope{"labels": labels}, nil)
+	if err != nil {
+		app.serverErrorResponse(w, r, err)
+		return
+	}
+}
+
 
 func (app *application) updateLabelHandler(w http.ResponseWriter, r *http.Request) {
 	id, err := app.readIDParam(r)

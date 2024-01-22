@@ -46,6 +46,11 @@ func (app *application) routes() http.Handler {
 	router.HandlerFunc(http.MethodGet, "/v1/characters", app.requireActivatedUser(app.listCharacterHandler))
 	router.HandlerFunc(http.MethodDelete, "/v1/characters/:id", app.requireActivatedUser(app.deleteCharacterHandler))
 	router.HandlerFunc(http.MethodPatch, "/v1/characters/:id", app.requireActivatedUser(app.updateCharacterHandler))
+
+	router.HandlerFunc(http.MethodPost, "/v1/charlabels", app.requireActivatedUser(app.createCharLabelHandler))
+	router.HandlerFunc(http.MethodGet, "/v1/charlabels/characters", app.requireActivatedUser(app.listCharacterByLabelsHandler))
+	router.HandlerFunc(http.MethodGet, "/v1/charlabels/labels", app.requireActivatedUser(app.listLabelsbyCharacterHandler))
+	router.HandlerFunc(http.MethodDelete, "/v1/charlabels", app.requireActivatedUser(app.deleteCharLabelHandler))
 	
 	router.HandlerFunc(http.MethodPost, "/v1/users", app.registerUserHandler)
 	router.HandlerFunc(http.MethodPut, "/v1/users/activated", app.activateUserHandler)

@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/GDGVIT/fanfiction-writer-backend/fanfiction-backend/internal/validator"
+	"github.com/lib/pq"
 )
 
 type Character struct {
@@ -49,6 +50,17 @@ func (m CharacterModel) Insert(character *Character) error {
 	}
 
 	return nil
+}
+
+func (m CharacterModel) InsertCharLabels(character_id int64, label_id ...int64) error {
+	query := `INSERT INTO characters_labels
+	SELECT $1, labels.id FROM labels WHERE labels.id = ANY($2)`
+
+	ctx, cancel := context.WithTimeout(context.Background(), TimeoutDuration)
+	defer cancel()
+	
+	_, err := m.DB.ExecContext(ctx, query, character_id, pq.Array(label_id))
+	return err
 }
 
 func (m CharacterModel) Get(story_id, character_id int64) (*Character, error) {
@@ -118,6 +130,56 @@ func (m CharacterModel) GetForStory(story_id int64) ([]*Character, error) {
 }
 
 
+func (m CharacterModel) GetAllForLabel(label_id int64) ([]*Character, error) {
+	query := `
+	SELECT DISTINCT c.id, c.created_at, c.story_id, c.name, c.description, c.version
+        FROM characters c
+        INNER JOIN characters_labels cl ON c.id = cl.character_id
+        INNER JOIN labels l ON cl.label_id = l.id
+        WHERE l.id = $1 OR l.id IN (SELECT sublabel_id
+        FROM sublabels
+        WHERE label_id = $1)
+		ORDER BY c.id;
+	`
+
+	ctx, cancel := context.WithTimeout(context.Background(), TimeoutDuration)
+	defer cancel()
+	
+	rows, err := m.DB.QueryContext(ctx, query, label_id)
+	if err != nil {
+		return nil, err
+	}
+
+	defer rows.Close()
+
+	characters := []*Character{}
+
+	for rows.Next() {
+		var character Character
+
+		err := rows.Scan(
+			&character.ID,
+			&character.CreatedAt,
+			&character.Story_ID,
+			&character.Name,
+			&character.Description,
+			&character.Version,
+		)
+		if err != nil {
+			return nil, err
+		}
+
+		characters = append(characters, &character)
+	}
+
+	if err = rows.Err(); err != nil {
+		return nil, err
+	}
+
+	return characters, nil
+}	
+
+
 func (m CharacterModel) Update(character *Character) error {
 	query := `UPDATE characters
 	SET name = $1, description = $2, version = version + 1
@@ -169,50 +231,28 @@ func (m CharacterModel) Delete(story_id, character_id int64) error {
 	return nil
 }
 
-func (m CharacterModel) GetAllForLabel(label_id int64) ([]*Character, error) {
-	query := `
-	SELECT c.id, c.created_at, c.story_id, c.name, c.description, c.version
-	FROM characters c
-	INNER JOIN characters_labels cl ON c.id = cl.character_id
-	INNER JOIN labels l ON cl.label_id = l.id
-	WHERE l.id = $1
-	`
-
-	//TODO Include sublabels in this result
+func (m CharacterModel) DeleteCharLabels(character_id int64, label_id ...int64) error {
+	query := `DELETE FROM characters_labels
+	WHERE character_id = $1
+	AND label_id = ANY($2)`
 
 	ctx, cancel := context.WithTimeout(context.Background(), TimeoutDuration)
 	defer cancel()
+
+	result, err := m.DB.ExecContext(ctx, query, character_id, pq.Array(label_id))
 	
-	rows, err := m.DB.QueryContext(ctx, query, label_id)
 	if err != nil {
-		return nil, err
+		return err
 	}
 
-	defer rows.Close()
-
-	characters := []*Character{}
-
-	for rows.Next() {
-		var character Character
-
-		err := rows.Scan(
-			&character.ID,
-			&character.CreatedAt,
-			&character.Story_ID,
-			&character.Name,
-			&character.Description,
-			&character.Version,
-		)
-		if err != nil {
-			return nil, err
-		}
-
-		characters = append(characters, &character)
+	rowsAffected, err := result.RowsAffected()
+	if err != nil {
+		return err
 	}
 
-	if err = rows.Err(); err != nil {
-		return nil, err
+	if rowsAffected == 0 {
+		return ErrRecordNotFound
 	}
 
-	return characters, nil
-}	
+	return nil
+}

@@ -54,6 +54,31 @@ func (app *application) createCharacterHandler(w http.ResponseWriter, r *http.Re
 	}
 }
 
+func (app *application) createCharLabelHandler(w http.ResponseWriter, r *http.Request) {
+	var input struct {
+		Character_ID int64   `json:"character_id"`
+		Label_ID     []int64 `json:"label_id"`
+	}
+
+	err := app.readJSON(w, r, &input)
+	if err != nil {
+		app.badRequestResponse(w, r, err)
+		return
+	}
+
+	err = app.models.Characters.InsertCharLabels(input.Character_ID, input.Label_ID...)
+	if err != nil {
+		app.serverErrorResponse(w, r, err)
+		return
+	}
+
+	err = app.writeJSON(w, http.StatusOK, envelope{"character": "character label(s) added."}, nil)
+	if err != nil {
+		app.serverErrorResponse(w, r, err)
+		return
+	}
+}
+
 func (app *application) getCharacterHandler(w http.ResponseWriter, r *http.Request) {
 	id, err := app.readIDParam(r)
 	if err != nil {
@@ -101,6 +126,30 @@ func (app *application) listCharacterHandler(w http.ResponseWriter, r *http.Requ
 	}
 
 	characters, err := app.models.Characters.GetForStory(input.Story_ID)
+	if err != nil {
+		app.serverErrorResponse(w, r, err)
+		return
+	}
+
+	err = app.writeJSON(w, http.StatusOK, envelope{"characters": characters}, nil)
+	if err != nil {
+		app.serverErrorResponse(w, r, err)
+		return
+	}
+}
+
+func (app *application) listCharacterByLabelsHandler(w http.ResponseWriter, r *http.Request) {
+	var input struct {
+		Label_ID int64 `json:"label_id"`
+	}
+
+	err := app.readJSON(w, r, &input)
+	if err != nil {
+		app.badRequestResponse(w, r, err)
+		return
+	}
+
+	characters, err := app.models.Characters.GetAllForLabel(input.Label_ID)
 	if err != nil {
 		app.serverErrorResponse(w, r, err)
 		return
@@ -208,5 +257,35 @@ func (app *application) deleteCharacterHandler(w http.ResponseWriter, r *http.Re
 		app.serverErrorResponse(w, r, err)
 		return
 	}
+}
 
+func (app *application) deleteCharLabelHandler(w http.ResponseWriter, r *http.Request) {
+	var input struct {
+		Character_ID int64   `json:"character_id"`
+		Label_ID     []int64 `json:"label_id"`
+	}
+
+	err := app.readJSON(w, r, &input)
+	if err != nil {
+		app.badRequestResponse(w, r, err)
+		return
+	}
+
+	err = app.models.Characters.DeleteCharLabels(input.Character_ID, input.Label_ID...)
+	if err != nil {
+		switch {
+		case errors.Is(err, data.ErrRecordNotFound):
+			app.notFoundResponse(w ,r)
+		default:
+			app.serverErrorResponse(w, r, err)
+		}
+		return
+	}
+
+	err = app.writeJSON(w, http.StatusOK, envelope{"character": "character label(s) deleted."}, nil)
+	if err != nil {
+		app.serverErrorResponse(w, r, err)
+		return
+	}
+	
 }
