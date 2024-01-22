@@ -72,7 +72,7 @@ func (app *application) createCharLabelHandler(w http.ResponseWriter, r *http.Re
 		return
 	}
 
-	err = app.writeJSON(w, http.StatusOK, envelope{"character": "character label(s) added."}, nil)
+	err = app.writeJSON(w, http.StatusCreated, envelope{"character": "character label(s) added."}, nil)
 	if err != nil {
 		app.serverErrorResponse(w, r, err)
 		return
