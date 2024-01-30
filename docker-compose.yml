@@ -1,7 +1,7 @@
 version: '3.8'
 
 services:
-  web:
+  api:
     build: .
     ports:
       - 4000:4000
@@ -22,6 +22,7 @@ services:
       - ENV="production"
     depends_on:
       - db
+      - migrate
     networks:
       - ffwriter-network
 
@@ -37,17 +38,11 @@ services:
       - postgres-db:/var/lib/postgresql/data
     networks:
       - ffwriter-network  
-    healthcheck:
-      test: pg_isready -U ffwriter -d FF-Writer
-      interval: 10s
-      timeout: 3s
-      retries: 5
 
   migrate:
     image: migrate/migrate
     depends_on:
       - db     
-      - web 
     volumes:
       - ./fanfiction-backend/migrations:/migrations 
     # entrypoint: "migrate -database postgres://ffwriter:password@db:5432/FF-Writer?sslmode=disable -path /migrations"
