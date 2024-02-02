@@ -1,6 +1,6 @@
 CREATE TABLE IF NOT EXISTS characters
 (
-    id bigserial NOT NULL,
+    id uuid NOT NULL DEFAULT uuid_generate_v4(),
     created_at timestamp with time zone NOT NULL DEFAULT NOW(),
     story_id bigint NOT NULL,
     name citext NOT NULL,

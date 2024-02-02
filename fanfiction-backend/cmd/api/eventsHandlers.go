@@ -11,7 +11,7 @@ import (
 
 func (app *application) createEventHandler(w http.ResponseWriter, r *http.Request) {
 	var input struct {
-		Timeline_ID int64  `json:"timeline_id"`
+		Character_ID int64  `json:"character_id"`
 		EventTime   string `json:"event_time"`
 		Title       string `json:"title"`
 		Description string `json:"description"`
@@ -31,11 +31,11 @@ func (app *application) createEventHandler(w http.ResponseWriter, r *http.Reques
 	}
 
 	event := &data.Event{
-		Timeline_ID: input.Timeline_ID,
-		EventTime:   eventTime,
-		Title:       input.Title,
-		Description: input.Description,
-		Details:     input.Details,
+		Character_ID: input.Character_ID,
+		EventTime:    eventTime,
+		Title:        input.Title,
+		Description:  input.Description,
+		Details:      input.Details,
 	}
 
 	v := validator.New()
@@ -71,7 +71,7 @@ func (app *application) getEventHandler(w http.ResponseWriter, r *http.Request) 
 	}
 
 	var input struct {
-		Timeline_ID int64 `json:"timeline_id"`
+		Character_ID int64 `json:"character_id"`
 	}
 
 	err = app.readJSON(w, r, &input)
@@ -100,7 +100,7 @@ func (app *application) getEventHandler(w http.ResponseWriter, r *http.Request) 
 
 func (app *application) listEventHandler(w http.ResponseWriter, r *http.Request) {
 	var input struct {
-		Timeline_ID int64 `json:"timeline_id"`
+		Character_ID int64 `json:"character_id"`
 	}
 
 	err := app.readJSON(w, r, &input)
@@ -109,7 +109,7 @@ func (app *application) listEventHandler(w http.ResponseWriter, r *http.Request)
 		return
 	}
 
-	events, err := app.models.Events.GetForTimeline(input.Timeline_ID)
+	events, err := app.models.Events.GetForTimeline(input.Character_ID)
 	if err != nil {
 		app.serverErrorResponse(w, r, err)
 		return
@@ -130,7 +130,7 @@ func (app *application) updateEventHandler(w http.ResponseWriter, r *http.Reques
 	}
 
 	var input struct {
-		Timeline_ID *int64  `json:"timeline_id"`
+		Character_ID *int64  `json:"character_id"`
 		EventTime   *string `json:"event_time"`
 		Title       *string `json:"title"`
 		Description *string `json:"description"`
@@ -154,8 +154,8 @@ func (app *application) updateEventHandler(w http.ResponseWriter, r *http.Reques
 		return
 	}
 
-	if input.Timeline_ID != nil {
-		event.Timeline_ID = *input.Timeline_ID
+	if input.Character_ID != nil {
+		event.Character_ID = *input.Character_ID
 	}
 
 	if input.EventTime != nil {
@@ -212,7 +212,7 @@ func (app *application) deleteEventHandler(w http.ResponseWriter, r *http.Reques
 	}
 
 	var input struct {
-		Timeline_ID int64 `json:"timeline_id"`
+		Character_ID int64 `json:"character_id"`
 	}
 
 	err = app.readJSON(w, r, &input)
@@ -221,7 +221,7 @@ func (app *application) deleteEventHandler(w http.ResponseWriter, r *http.Reques
 		return
 	}
 
-	err = app.models.Events.Delete(id, input.Timeline_ID)
+	err = app.models.Events.Delete(id, input.Character_ID)
 	if err != nil {
 		switch {
 		case errors.Is(err, data.ErrRecordNotFound):
