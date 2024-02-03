@@ -57,7 +57,7 @@ func (app *application) createCharacterHandler(w http.ResponseWriter, r *http.Re
 
 func (app *application) createCharLabelHandler(w http.ResponseWriter, r *http.Request) {
 	var input struct {
-		Character_ID string   `json:"character_id"`
+		Character_ID string  `json:"character_id"`
 		Label_ID     []int64 `json:"label_id"`
 	}
 
@@ -76,14 +76,14 @@ func (app *application) createCharLabelHandler(w http.ResponseWriter, r *http.Re
 	err = app.models.Characters.InsertCharLabels(id, input.Label_ID...)
 	if err != nil {
 		switch {
-			case errors.Is(err, data.ErrRecordNotFound):
-				app.notFoundResponse(w, r)
-			case errors.Is(err, data.ErrDuplicateLabel):
-				v := validator.New()
-				v.AddError("charlabel", "a character-label entry with this name already exists")
-				app.failedValidationResponse(w, r, v.Errors)
-			default:
-				app.serverErrorResponse(w, r, err)
+		case errors.Is(err, data.ErrRecordNotFound):
+			app.notFoundResponse(w, r)
+		case errors.Is(err, data.ErrDuplicateLabel):
+			v := validator.New()
+			v.AddError("charlabel", "a character-label entry with this name already exists")
+			app.failedValidationResponse(w, r, v.Errors)
+		default:
+			app.serverErrorResponse(w, r, err)
 		}
 		return
 	}
@@ -186,9 +186,9 @@ func (app *application) updateCharacterHandler(w http.ResponseWriter, r *http.Re
 	}
 
 	var input struct {
-		Story_ID    int64  `json:"story_id"`
-		Description string `json:"description"`
-		Name        string `json:"name"`
+		Story_ID    *int64  `json:"story_id"`
+		Description *string `json:"description"`
+		Name        *string `json:"name"`
 	}
 
 	err = app.readJSON(w, r, &input)
@@ -197,7 +197,7 @@ func (app *application) updateCharacterHandler(w http.ResponseWriter, r *http.Re
 		return
 	}
 
-	character, err := app.models.Characters.Get(input.Story_ID, id)
+	character, err := app.models.Characters.Get(*input.Story_ID, id)
 	if err != nil {
 		switch {
 		case errors.Is(err, data.ErrRecordNotFound):
@@ -208,8 +208,12 @@ func (app *application) updateCharacterHandler(w http.ResponseWriter, r *http.Re
 		return
 	}
 
-	character.Name = input.Name
-	character.Description = input.Description
+	if input.Name != nil {
+		character.Name = *input.Name
+	}
+	if input.Description != nil {
+		character.Description = *input.Description
+	}
 
 	v := validator.New()
 	if data.ValidateCharacter(v, character); !v.Valid() {
@@ -277,7 +281,7 @@ func (app *application) deleteCharacterHandler(w http.ResponseWriter, r *http.Re
 
 func (app *application) deleteCharLabelHandler(w http.ResponseWriter, r *http.Request) {
 	var input struct {
-		Character_ID string   `json:"character_id"`
+		Character_ID string  `json:"character_id"`
 		Label_ID     []int64 `json:"label_id"`
 	}
 
@@ -292,13 +296,12 @@ func (app *application) deleteCharLabelHandler(w http.ResponseWriter, r *http.Re
 		app.badRequestResponse(w, r, err)
 		return
 	}
-	
 
 	err = app.models.Characters.DeleteCharLabels(id, input.Label_ID...)
 	if err != nil {
 		switch {
 		case errors.Is(err, data.ErrRecordNotFound):
-			app.notFoundResponse(w ,r)
+			app.notFoundResponse(w, r)
 		default:
 			app.serverErrorResponse(w, r, err)
 		}
@@ -310,5 +313,5 @@ func (app *application) deleteCharLabelHandler(w http.ResponseWriter, r *http.Re
 		app.serverErrorResponse(w, r, err)
 		return
 	}
-	
+
 }
