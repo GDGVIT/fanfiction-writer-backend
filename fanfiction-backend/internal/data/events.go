@@ -7,12 +7,13 @@ import (
 	"time"
 
 	"github.com/GDGVIT/fanfiction-writer-backend/fanfiction-backend/internal/validator"
+	"github.com/google/uuid"
 )
 
 type Event struct {
-	ID           int64     `json:"id"`
+	ID           uuid.UUID `json:"id"`
 	CreatedAt    time.Time `json:"created_at"`
-	Character_ID int64     `json:"character_id"`
+	Character_ID uuid.UUID `json:"character_id"`
 	EventTime    time.Time `json:"event_time"`
 	Title        string    `json:"title"`
 	Description  string    `json:"description,omitempty"`
@@ -21,7 +22,7 @@ type Event struct {
 }
 
 func ValidateEvent(v *validator.Validator, event *Event) {
-	v.Check(event.Character_ID != 0, "character_id", "must be provided")
+	v.Check(event.Character_ID != uuid.Nil, "character_id", "must be provided")
 	v.Check(event.EventTime != time.Time{}, "event_time", "must be provided")
 	v.Check(event.Title != "", "title", "must be provided")
 }
@@ -54,7 +55,7 @@ func (m EventModel) Insert(event *Event) error {
 
 }
 
-func (m EventModel) Get(event_id int64) (*Event, error) {
+func (m EventModel) Get(event_id uuid.UUID) (*Event, error) {
 	query := `SELECT id, created_at, character_id, event_time, title, description, details, version
 	FROM events
 	WHERE id = $1`
@@ -86,7 +87,7 @@ func (m EventModel) Get(event_id int64) (*Event, error) {
 	return &event, nil
 }
 
-func (m EventModel) GetForTimeline(character_id int64) ([]*Event, error) {
+func (m EventModel) GetForTimeline(character_id uuid.UUID) ([]*Event, error) {
 	query := `SELECT id, created_at, character_id, event_time, title, description, details, version
 	FROM events
 	WHERE character_id = $1
@@ -156,7 +157,7 @@ func (m EventModel) Update(event *Event) error {
 	return nil
 }
 
-func (m EventModel) Delete(event_id, character_id int64) error {
+func (m EventModel) Delete(event_id, character_id uuid.UUID) error {
 	query := `DELETE FROM events
 	WHERE character_id = $1
 	AND id = $2`

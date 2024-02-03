@@ -7,15 +7,16 @@ import (
 
 	"github.com/GDGVIT/fanfiction-writer-backend/fanfiction-backend/internal/data"
 	"github.com/GDGVIT/fanfiction-writer-backend/fanfiction-backend/internal/validator"
+	"github.com/google/uuid"
 )
 
 func (app *application) createEventHandler(w http.ResponseWriter, r *http.Request) {
 	var input struct {
-		Character_ID int64  `json:"character_id"`
-		EventTime   string `json:"event_time"`
-		Title       string `json:"title"`
-		Description string `json:"description"`
-		Details     string `json:"details"`
+		Character_ID string `json:"character_id"`
+		EventTime    string `json:"event_time"`
+		Title        string `json:"title"`
+		Description  string `json:"description"`
+		Details      string `json:"details"`
 	}
 
 	err := app.readJSON(w, r, &input)
@@ -30,8 +31,14 @@ func (app *application) createEventHandler(w http.ResponseWriter, r *http.Reques
 		return
 	}
 
+	char_uuid, err := uuid.Parse(input.Character_ID)
+	if err != nil {
+		app.badRequestResponse(w, r, err)
+		return
+	}
+
 	event := &data.Event{
-		Character_ID: input.Character_ID,
+		Character_ID: char_uuid,
 		EventTime:    eventTime,
 		Title:        input.Title,
 		Description:  input.Description,
@@ -64,14 +71,14 @@ func (app *application) createEventHandler(w http.ResponseWriter, r *http.Reques
 }
 
 func (app *application) getEventHandler(w http.ResponseWriter, r *http.Request) {
-	id, err := app.readIDParam(r)
+	id, err := app.readUUIDParam(r)
 	if err != nil {
 		app.notFoundResponse(w, r)
 		return
 	}
 
 	var input struct {
-		Character_ID int64 `json:"character_id"`
+		Character_ID string `json:"character_id"`
 	}
 
 	err = app.readJSON(w, r, &input)
@@ -100,7 +107,7 @@ func (app *application) getEventHandler(w http.ResponseWriter, r *http.Request) 
 
 func (app *application) listEventHandler(w http.ResponseWriter, r *http.Request) {
 	var input struct {
-		Character_ID int64 `json:"character_id"`
+		Character_ID string `json:"character_id"`
 	}
 
 	err := app.readJSON(w, r, &input)
@@ -109,7 +116,13 @@ func (app *application) listEventHandler(w http.ResponseWriter, r *http.Request)
 		return
 	}
 
-	events, err := app.models.Events.GetForTimeline(input.Character_ID)
+	char_uuid, err := uuid.Parse(input.Character_ID)
+	if err != nil {
+		app.badRequestResponse(w, r, err)
+		return
+	}
+
+	events, err := app.models.Events.GetForTimeline(char_uuid)
 	if err != nil {
 		app.serverErrorResponse(w, r, err)
 		return
@@ -123,21 +136,27 @@ func (app *application) listEventHandler(w http.ResponseWriter, r *http.Request)
 }
 
 func (app *application) updateEventHandler(w http.ResponseWriter, r *http.Request) {
-	id, err := app.readIDParam(r)
+	id, err := app.readUUIDParam(r)
 	if err != nil {
 		app.serverErrorResponse(w, r, err)
 		return
 	}
 
 	var input struct {
-		Character_ID *int64  `json:"character_id"`
-		EventTime   *string `json:"event_time"`
-		Title       *string `json:"title"`
-		Description *string `json:"description"`
-		Details     *string `json:"details"`
+		Character_ID *string `json:"character_id"`
+		EventTime    *string `json:"event_time"`
+		Title        *string `json:"title"`
+		Description  *string `json:"description"`
+		Details      *string `json:"details"`
 	}
 
 	err = app.readJSON(w, r, &input)
+	if err != nil {
+		app.badRequestResponse(w, r, err)
+		return
+	}
+
+	char_uuid, err := uuid.Parse(*input.Character_ID)
 	if err != nil {
 		app.badRequestResponse(w, r, err)
 		return
@@ -155,7 +174,7 @@ func (app *application) updateEventHandler(w http.ResponseWriter, r *http.Reques
 	}
 
 	if input.Character_ID != nil {
-		event.Character_ID = *input.Character_ID
+		event.Character_ID = char_uuid
 	}
 
 	if input.EventTime != nil {
@@ -205,14 +224,14 @@ func (app *application) updateEventHandler(w http.ResponseWriter, r *http.Reques
 }
 
 func (app *application) deleteEventHandler(w http.ResponseWriter, r *http.Request) {
-	id, err := app.readIDParam(r)
+	id, err := app.readUUIDParam(r)
 	if err != nil {
 		app.notFoundResponse(w, r)
 		return
 	}
 
 	var input struct {
-		Character_ID int64 `json:"character_id"`
+		Character_ID string `json:"character_id"`
 	}
 
 	err = app.readJSON(w, r, &input)
@@ -221,7 +240,13 @@ func (app *application) deleteEventHandler(w http.ResponseWriter, r *http.Reques
 		return
 	}
 
-	err = app.models.Events.Delete(id, input.Character_ID)
+	uuid, err := uuid.Parse(input.Character_ID)
+	if err != nil {
+		app.badRequestResponse(w, r, err)
+		return
+	}
+
+	err = app.models.Events.Delete(id, uuid)
 	if err != nil {
 		switch {
 		case errors.Is(err, data.ErrRecordNotFound):

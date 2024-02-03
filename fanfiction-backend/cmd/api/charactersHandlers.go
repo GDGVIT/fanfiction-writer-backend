@@ -6,6 +6,7 @@ import (
 
 	"github.com/GDGVIT/fanfiction-writer-backend/fanfiction-backend/internal/data"
 	"github.com/GDGVIT/fanfiction-writer-backend/fanfiction-backend/internal/validator"
+	"github.com/google/uuid"
 )
 
 func (app *application) createCharacterHandler(w http.ResponseWriter, r *http.Request) {
@@ -56,7 +57,7 @@ func (app *application) createCharacterHandler(w http.ResponseWriter, r *http.Re
 
 func (app *application) createCharLabelHandler(w http.ResponseWriter, r *http.Request) {
 	var input struct {
-		Character_ID int64   `json:"character_id"`
+		Character_ID string   `json:"character_id"`
 		Label_ID     []int64 `json:"label_id"`
 	}
 
@@ -66,7 +67,13 @@ func (app *application) createCharLabelHandler(w http.ResponseWriter, r *http.Re
 		return
 	}
 
-	err = app.models.Characters.InsertCharLabels(input.Character_ID, input.Label_ID...)
+	id, err := uuid.Parse(input.Character_ID)
+	if err != nil {
+		app.badRequestResponse(w, r, err)
+		return
+	}
+
+	err = app.models.Characters.InsertCharLabels(id, input.Label_ID...)
 	if err != nil {
 		switch {
 			case errors.Is(err, data.ErrRecordNotFound):
@@ -89,7 +96,7 @@ func (app *application) createCharLabelHandler(w http.ResponseWriter, r *http.Re
 }
 
 func (app *application) getCharacterHandler(w http.ResponseWriter, r *http.Request) {
-	id, err := app.readIDParam(r)
+	id, err := app.readUUIDParam(r)
 	if err != nil {
 		app.notFoundResponse(w, r)
 		return
@@ -172,7 +179,7 @@ func (app *application) listCharacterByLabelsHandler(w http.ResponseWriter, r *h
 }
 
 func (app *application) updateCharacterHandler(w http.ResponseWriter, r *http.Request) {
-	id, err := app.readIDParam(r)
+	id, err := app.readUUIDParam(r)
 	if err != nil {
 		app.serverErrorResponse(w, r, err)
 		return
@@ -234,7 +241,7 @@ func (app *application) updateCharacterHandler(w http.ResponseWriter, r *http.Re
 }
 
 func (app *application) deleteCharacterHandler(w http.ResponseWriter, r *http.Request) {
-	id, err := app.readIDParam(r)
+	id, err := app.readUUIDParam(r)
 	if err != nil {
 		app.notFoundResponse(w, r)
 		return
@@ -270,7 +277,7 @@ func (app *application) deleteCharacterHandler(w http.ResponseWriter, r *http.Re
 
 func (app *application) deleteCharLabelHandler(w http.ResponseWriter, r *http.Request) {
 	var input struct {
-		Character_ID int64   `json:"character_id"`
+		Character_ID string   `json:"character_id"`
 		Label_ID     []int64 `json:"label_id"`
 	}
 
@@ -280,7 +287,14 @@ func (app *application) deleteCharLabelHandler(w http.ResponseWriter, r *http.Re
 		return
 	}
 
-	err = app.models.Characters.DeleteCharLabels(input.Character_ID, input.Label_ID...)
+	id, err := uuid.Parse(input.Character_ID)
+	if err != nil {
+		app.badRequestResponse(w, r, err)
+		return
+	}
+	
+
+	err = app.models.Characters.DeleteCharLabels(id, input.Label_ID...)
 	if err != nil {
 		switch {
 		case errors.Is(err, data.ErrRecordNotFound):

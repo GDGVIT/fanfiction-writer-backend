@@ -8,11 +8,12 @@ import (
 	"time"
 
 	"github.com/GDGVIT/fanfiction-writer-backend/fanfiction-backend/internal/validator"
+	"github.com/google/uuid"
 	"github.com/lib/pq"
 )
 
 type Character struct {
-	ID          int64     `json:"id"`
+	ID          uuid.UUID `json:"id"`
 	CreatedAt   time.Time `json:"created_at"`
 	Story_ID    int64     `json:"story_id"`
 	Name        string    `json:"name"`
@@ -53,7 +54,7 @@ func (m CharacterModel) Insert(character *Character) error {
 	return nil
 }
 
-func (m CharacterModel) InsertCharLabels(character_id int64, label_id ...int64) error {
+func (m CharacterModel) InsertCharLabels(character_id uuid.UUID, label_id ...int64) error {
 	query := `INSERT INTO characters_labels
 	SELECT $1, labels.id FROM labels WHERE labels.id = ANY($2)`
 
@@ -76,7 +77,7 @@ func (m CharacterModel) InsertCharLabels(character_id int64, label_id ...int64) 
 	return nil
 }
 
-func (m CharacterModel) Get(story_id, character_id int64) (*Character, error) {
+func (m CharacterModel) Get(story_id int64, character_id uuid.UUID) (*Character, error) {
 	query := `SELECT id, created_at, story_id, name, description, version
 	FROM characters
 	WHERE story_id = $1
@@ -217,7 +218,7 @@ func (m CharacterModel) Update(character *Character) error {
 	return nil
 }
 
-func (m CharacterModel) Delete(story_id, character_id int64) error {
+func (m CharacterModel) Delete(story_id int64, character_id uuid.UUID) error {
 	query := `DELETE FROM characters
 	WHERE story_id = $1
 	AND id = $2`
@@ -242,7 +243,7 @@ func (m CharacterModel) Delete(story_id, character_id int64) error {
 	return nil
 }
 
-func (m CharacterModel) DeleteCharLabels(character_id int64, label_id ...int64) error {
+func (m CharacterModel) DeleteCharLabels(character_id uuid.UUID, label_id ...int64) error {
 	query := `DELETE FROM characters_labels
 	WHERE character_id = $1
 	AND label_id = ANY($2)`
