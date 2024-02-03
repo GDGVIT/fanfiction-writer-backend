@@ -18,6 +18,7 @@ type Event struct {
 	Title        string    `json:"title"`
 	Description  string    `json:"description,omitempty"`
 	Details      string    `json:"details,omitempty"`
+	Index        int       `json:"index"`
 	Version      int       `json:"-"`
 }
 
@@ -32,19 +33,38 @@ type EventModel struct {
 }
 
 func (m EventModel) Insert(event *Event) error {
-	query := `INSERT INTO events(character_id, event_time, title, description, details)
-	VALUES ($1, $2, $3, $4, $5)
+	index, err := m.getLastIndex(event.Character_ID)
+	index += 1
+	if err != nil {
+		switch {
+		case errors.Is(err, sql.ErrNoRows):
+			index = 1
+		default:
+			return err
+		}
+	}
+	if event.Index == 0  || event.Index > index{
+		event.Index = index
+	}
+
+	err = m.increaseIndex(event.Index, event.Character_ID)
+	if err != nil {
+		return err
+	}
+
+	query := `INSERT INTO events(character_id, event_time, title, description, details, index)
+	VALUES ($1, $2, $3, $4, $5, $6)
 	RETURNING id, created_at, version`
 
-	args := []interface{}{event.Character_ID, event.EventTime, event.Title, event.Description, event.Details}
+	args := []interface{}{event.Character_ID, event.EventTime, event.Title, event.Description, event.Details, event.Index}
 
 	ctx, cancel := context.WithTimeout(context.Background(), TimeoutDuration)
 	defer cancel()
 
-	err := m.DB.QueryRowContext(ctx, query, args...).Scan(&event.ID, &event.CreatedAt, &event.Version)
+	err = m.DB.QueryRowContext(ctx, query, args...).Scan(&event.ID, &event.CreatedAt, &event.Version)
 	if err != nil {
 		switch {
-		case err.Error() == `pq: duplicate key value violates unique constraint "events_character_id_title_key"`:
+		case err.Error() == `pq: duplicate key value violates primary key constraint "events_pkey"`:
 			return ErrDuplicateEvent
 		default:
 			return err
@@ -56,7 +76,7 @@ func (m EventModel) Insert(event *Event) error {
 }
 
 func (m EventModel) Get(event_id uuid.UUID) (*Event, error) {
-	query := `SELECT id, created_at, character_id, event_time, title, description, details, version
+	query := `SELECT id, created_at, character_id, event_time, title, description, details, index, version
 	FROM events
 	WHERE id = $1`
 
@@ -73,6 +93,7 @@ func (m EventModel) Get(event_id uuid.UUID) (*Event, error) {
 		&event.Title,
 		&event.Description,
 		&event.Details,
+		&event.Index,
 		&event.Version)
 
 	if err != nil {
@@ -87,11 +108,11 @@ func (m EventModel) Get(event_id uuid.UUID) (*Event, error) {
 	return &event, nil
 }
 
-func (m EventModel) GetForTimeline(character_id uuid.UUID) ([]*Event, error) {
-	query := `SELECT id, created_at, character_id, event_time, title, description, details, version
+func (m EventModel) GetForCharacter(character_id uuid.UUID) ([]*Event, error) {
+	query := `SELECT id, created_at, character_id, event_time, title, description, details, index, version
 	FROM events
 	WHERE character_id = $1
-	ORDER BY event_time ASC`
+	ORDER BY index ASC`
 
 	ctx, cancel := context.WithTimeout(context.Background(), TimeoutDuration)
 	defer cancel()
@@ -116,6 +137,7 @@ func (m EventModel) GetForTimeline(character_id uuid.UUID) ([]*Event, error) {
 			&event.Title,
 			&event.Description,
 			&event.Details,
+			&event.Index,
 			&event.Version)
 		if err != nil {
 			return nil, err
@@ -131,22 +153,59 @@ func (m EventModel) GetForTimeline(character_id uuid.UUID) ([]*Event, error) {
 	return events, nil
 }
 
-func (m EventModel) Update(event *Event) error {
-	query := `UPDATE events
-	SET event_time = $1, character_id = $2, title = $3, description = $4, details = $5, version = version + 1
-	WHERE id = $6 and version = $7
-	RETURNING version`
-
-	args := []interface{}{event.EventTime, event.Character_ID, event.Title, event.Description, event.Details, event.ID, event.Version}
+func (m EventModel) GetIndexForEvent(id uuid.UUID) (int, error) {
+	query := `SELECT index
+	FROM events
+	WHERE id = $1`
 
 	ctx, cancel := context.WithTimeout(context.Background(), TimeoutDuration)
 	defer cancel()
 
-	err := m.DB.QueryRowContext(ctx, query, args...).Scan(&event.Version)
+	var index int
+
+	err := m.DB.QueryRowContext(ctx, query, id).Scan(&index)
+	if err != nil {
+		return -1, err
+	}
+
+	return index, nil
+}
+
+func (m EventModel) Update(event *Event, oldindex int, oldCharacterID uuid.UUID) error {
+	index, err := m.getLastIndex(event.Character_ID)
+	index += 1
 	if err != nil {
 		switch {
-		case err.Error() == `pq: duplicate key value violates unique constraint "events_character_id_title_key"`:
-			return ErrDuplicateStory
+		case errors.Is(err, sql.ErrNoRows):
+			index = 1
+		default:
+			return err
+		}
+	}
+	if event.Index == 0  || event.Index > index{
+		event.Index = index
+	}
+	
+	err = m.increaseIndex(event.Index, event.Character_ID)
+	if err != nil {
+		return err
+	}
+
+	query := `UPDATE events
+	SET event_time = $1, character_id = $2, title = $3, description = $4, details = $5, index = $6, version = version + 1
+	WHERE id = $7 and version = $8
+	RETURNING version`
+
+	args := []interface{}{event.EventTime, event.Character_ID, event.Title, event.Description, event.Details, event.Index ,event.ID, event.Version}
+
+	ctx, cancel := context.WithTimeout(context.Background(), TimeoutDuration)
+	defer cancel()
+
+	err = m.DB.QueryRowContext(ctx, query, args...).Scan(&event.Version)
+	if err != nil {
+		switch {
+		case err.Error() == `pq: duplicate key value violates primary key constraint "events_pkey"`:
+			return ErrDuplicateEvent
 		case errors.Is(err, sql.ErrNoRows):
 			return ErrEditConflict
 		default:
@@ -154,18 +213,32 @@ func (m EventModel) Update(event *Event) error {
 		}
 	}
 
+	err = m.decreaseIndex(oldindex, oldCharacterID)
+	if err != nil {
+		return err
+	}
+
 	return nil
 }
 
 func (m EventModel) Delete(event_id, character_id uuid.UUID) error {
+	index, err := m.GetIndexForEvent(event_id)
+	if err != nil {
+		switch {
+		case errors.Is(err, sql.ErrNoRows):
+			return ErrRecordNotFound
+		default:
+			return err
+		}
+	}
+
 	query := `DELETE FROM events
-	WHERE character_id = $1
-	AND id = $2`
+	WHERE id = $1`
 
 	ctx, cancel := context.WithTimeout(context.Background(), TimeoutDuration)
 	defer cancel()
 
-	result, err := m.DB.ExecContext(ctx, query, character_id, event_id)
+	result, err := m.DB.ExecContext(ctx, query, event_id)
 	if err != nil {
 		return err
 	}
@@ -177,6 +250,67 @@ func (m EventModel) Delete(event_id, character_id uuid.UUID) error {
 
 	if rowsAffected == 0 {
 		return ErrRecordNotFound
+	}
+
+	err = m.decreaseIndex(index, character_id)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (m EventModel) getLastIndex(character_id uuid.UUID) (int, error) {
+	query := `SELECT index 
+	FROM events 
+	WHERE character_id = $1
+	ORDER BY index DESC
+	fetch first 1 row only;
+	`
+
+	ctx, cancel := context.WithTimeout(context.Background(), TimeoutDuration)
+	defer cancel()
+
+	var index int
+
+	err := m.DB.QueryRowContext(ctx, query, character_id).Scan(&index)
+	if err != nil {
+		return -1, err
+	}
+
+	return index, err
+
+}
+
+func (m EventModel) increaseIndex(index int, character_ID uuid.UUID) error {
+	query := `UPDATE events
+	SET index = index + 1
+	WHERE index >= $1 AND
+	character_id = $2`
+
+	ctx, cancel := context.WithTimeout(context.Background(), TimeoutDuration)
+	defer cancel()
+
+	_, err := m.DB.ExecContext(ctx, query, index, character_ID)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (m EventModel) decreaseIndex(index int, character_ID uuid.UUID) error {
+	query := `UPDATE events
+	SET index = index - 1
+	WHERE index > $1 AND
+	character_id = $2`
+
+	ctx, cancel := context.WithTimeout(context.Background(), TimeoutDuration)
+	defer cancel()
+
+	_, err := m.DB.ExecContext(ctx, query, index, character_ID)
+	if err != nil {
+		return err
 	}
 
 	return nil

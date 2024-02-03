@@ -17,6 +17,7 @@ func (app *application) createEventHandler(w http.ResponseWriter, r *http.Reques
 		Title        string `json:"title"`
 		Description  string `json:"description"`
 		Details      string `json:"details"`
+		Index        int    `json:"index"`
 	}
 
 	err := app.readJSON(w, r, &input)
@@ -43,6 +44,7 @@ func (app *application) createEventHandler(w http.ResponseWriter, r *http.Reques
 		Title:        input.Title,
 		Description:  input.Description,
 		Details:      input.Details,
+		Index:        input.Index,
 	}
 
 	v := validator.New()
@@ -74,16 +76,6 @@ func (app *application) getEventHandler(w http.ResponseWriter, r *http.Request) 
 	id, err := app.readUUIDParam(r)
 	if err != nil {
 		app.notFoundResponse(w, r)
-		return
-	}
-
-	var input struct {
-		Character_ID string `json:"character_id"`
-	}
-
-	err = app.readJSON(w, r, &input)
-	if err != nil {
-		app.badRequestResponse(w, r, err)
 		return
 	}
 
@@ -122,7 +114,7 @@ func (app *application) listEventHandler(w http.ResponseWriter, r *http.Request)
 		return
 	}
 
-	events, err := app.models.Events.GetForTimeline(char_uuid)
+	events, err := app.models.Events.GetForCharacter(char_uuid)
 	if err != nil {
 		app.serverErrorResponse(w, r, err)
 		return
@@ -148,6 +140,7 @@ func (app *application) updateEventHandler(w http.ResponseWriter, r *http.Reques
 		Title        *string `json:"title"`
 		Description  *string `json:"description"`
 		Details      *string `json:"details"`
+		Index        *int    `json:"index"`
 	}
 
 	err = app.readJSON(w, r, &input)
@@ -172,6 +165,8 @@ func (app *application) updateEventHandler(w http.ResponseWriter, r *http.Reques
 		}
 		return
 	}
+	oldIndex := event.Index
+	oldCharId := event.Character_ID
 
 	if input.Character_ID != nil {
 		event.Character_ID = char_uuid
@@ -193,6 +188,9 @@ func (app *application) updateEventHandler(w http.ResponseWriter, r *http.Reques
 	if input.Details != nil {
 		event.Details = *input.Details
 	}
+	if input.Index != nil {
+		event.Index = *input.Index
+	}
 
 	v := validator.New()
 	if data.ValidateEvent(v, event); !v.Valid() {
@@ -200,7 +198,7 @@ func (app *application) updateEventHandler(w http.ResponseWriter, r *http.Reques
 		return
 	}
 
-	err = app.models.Events.Update(event)
+	err = app.models.Events.Update(event, oldIndex, oldCharId)
 	if err != nil {
 		switch {
 		case errors.Is(err, data.ErrDuplicateEvent):

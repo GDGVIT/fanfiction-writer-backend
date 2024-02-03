@@ -7,8 +7,9 @@ CREATE TABLE IF NOT EXISTS events
     title citext,
     description text DEFAULT '',
     details text,
+    index integer,
     version integer NOT NULL DEFAULT 1,
     PRIMARY KEY (id),
-    UNIQUE (character_id, title),
+    UNIQUE (character_id, index) DEFERRABLE INITIALLY DEFERRED,
     FOREIGN KEY (character_id) REFERENCES characters (id) MATCH SIMPLE ON DELETE CASCADE
 );
