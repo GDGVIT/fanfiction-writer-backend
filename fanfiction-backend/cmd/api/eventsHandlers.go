@@ -127,6 +127,32 @@ func (app *application) listEventHandler(w http.ResponseWriter, r *http.Request)
 	}
 }
 
+func (app *application) listStoryEventHandler(w http.ResponseWriter, r *http.Request) {
+	var input struct {
+		Story_ID int64 `json:"story_id"`
+	}
+
+	err := app.readJSON(w, r, &input)
+	if err != nil {
+		app.badRequestResponse(w, r, err)
+		return
+	}
+
+	events, err := app.models.Events.GetForStory(input.Story_ID)
+	if err != nil {
+		app.serverErrorResponse(w, r, err)
+		return
+	}
+
+	err = app.writeJSON(w, http.StatusOK, envelope{"story_events": events}, nil)
+	if err != nil {
+		app.serverErrorResponse(w, r, err)
+		return
+	}
+}
+
+
+
 func (app *application) updateEventHandler(w http.ResponseWriter, r *http.Request) {
 	id, err := app.readUUIDParam(r)
 	if err != nil {

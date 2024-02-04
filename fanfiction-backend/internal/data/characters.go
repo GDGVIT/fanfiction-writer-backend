@@ -51,10 +51,10 @@ func (m CharacterModel) Insert(character *Character) error {
 	}
 
 	query := `INSERT INTO characters(story_id, name, description, index)
-	VALUES ($1, $2, $3)
+	VALUES ($1, $2, $3, $4)
 	RETURNING id, created_at, version`
 
-	args := []interface{}{character.Story_ID, character.Name, character.Description}
+	args := []interface{}{character.Story_ID, character.Name, character.Description, character.Index}
 
 	ctx, cancel := context.WithTimeout(context.Background(), TimeoutDuration)
 	defer cancel()
@@ -123,7 +123,8 @@ func (m CharacterModel) Get(character_id uuid.UUID) (*Character, error) {
 func (m CharacterModel) GetForStory(story_id int64) ([]*Character, error) {
 	query := `SELECT id, created_at, story_id, name, description, index, version
 	FROM characters
-	WHERE story_id = $1`
+	WHERE story_id = $1
+	ORDER BY index`
 
 	ctx, cancel := context.WithTimeout(context.Background(), TimeoutDuration)
 	defer cancel()
