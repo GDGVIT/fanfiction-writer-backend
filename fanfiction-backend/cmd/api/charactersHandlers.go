@@ -12,8 +12,9 @@ import (
 func (app *application) createCharacterHandler(w http.ResponseWriter, r *http.Request) {
 	var input struct {
 		Story_ID    int64  `json:"story_id"`
-		Description string `json:"description"`
 		Name        string `json:"name"`
+		Description string `json:"description"`
+		Index       int    `json:"index"`
 	}
 
 	err := app.readJSON(w, r, &input)
@@ -26,6 +27,7 @@ func (app *application) createCharacterHandler(w http.ResponseWriter, r *http.Re
 		Story_ID:    input.Story_ID,
 		Description: input.Description,
 		Name:        input.Name,
+		Index:       input.Index,
 	}
 
 	v := validator.New()
@@ -102,17 +104,7 @@ func (app *application) getCharacterHandler(w http.ResponseWriter, r *http.Reque
 		return
 	}
 
-	var input struct {
-		Story_ID int64 `json:"story_id"`
-	}
-
-	err = app.readJSON(w, r, &input)
-	if err != nil {
-		app.badRequestResponse(w, r, err)
-		return
-	}
-
-	character, err := app.models.Characters.Get(input.Story_ID, id)
+	character, err := app.models.Characters.Get(id)
 	if err != nil {
 		switch {
 		case errors.Is(err, data.ErrRecordNotFound):
@@ -187,8 +179,9 @@ func (app *application) updateCharacterHandler(w http.ResponseWriter, r *http.Re
 
 	var input struct {
 		Story_ID    *int64  `json:"story_id"`
-		Description *string `json:"description"`
 		Name        *string `json:"name"`
+		Description *string `json:"description"`
+		Index       *int    `json:"index"`
 	}
 
 	err = app.readJSON(w, r, &input)
@@ -197,7 +190,7 @@ func (app *application) updateCharacterHandler(w http.ResponseWriter, r *http.Re
 		return
 	}
 
-	character, err := app.models.Characters.Get(*input.Story_ID, id)
+	character, err := app.models.Characters.Get(id)
 	if err != nil {
 		switch {
 		case errors.Is(err, data.ErrRecordNotFound):
@@ -208,11 +201,16 @@ func (app *application) updateCharacterHandler(w http.ResponseWriter, r *http.Re
 		return
 	}
 
+	oldIndex := character.Index
+
 	if input.Name != nil {
 		character.Name = *input.Name
 	}
 	if input.Description != nil {
 		character.Description = *input.Description
+	}
+	if input.Index != nil {
+		character.Index = *input.Index
 	}
 
 	v := validator.New()
@@ -221,7 +219,7 @@ func (app *application) updateCharacterHandler(w http.ResponseWriter, r *http.Re
 		return
 	}
 
-	err = app.models.Characters.Update(character)
+	err = app.models.Characters.Update(character, oldIndex)
 	if err != nil {
 		switch {
 		case errors.Is(err, data.ErrDuplicateCharacter):
