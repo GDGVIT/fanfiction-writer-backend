@@ -25,6 +25,7 @@ type Event struct {
 type Story_Event struct {
 	Character_ID    uuid.UUID `json:"character_id"`
 	Character_Index int       `json:"character_index"`
+	Character_Name  string    `json:"character_name"`
 	Events          []Event   `json:"events"`
 }
 
@@ -160,7 +161,7 @@ func (m EventModel) GetForCharacter(character_id uuid.UUID) ([]*Event, error) {
 }
 
 func (m EventModel) GetForStory(id int64) ([]*Story_Event, error) {
-	query := `SELECT c.id, c.index, e.id, e.created_at, e.character_id, e.event_time, e.title, e.description, e.details, e.index, e.version
+	query := `SELECT c.id, c.index, c.name, e.id, e.created_at, e.character_id, e.event_time, e.title, e.description, e.details, e.index, e.version
 	FROM events e
 	LEFT JOIN characters c
 	ON e.character_id = c.id
@@ -186,6 +187,7 @@ func (m EventModel) GetForStory(id int64) ([]*Story_Event, error) {
 		err := rows.Scan(
 			&story_event.Character_ID,
 			&story_event.Character_Index,
+			&story_event.Character_Name,
 			&event.ID,
 			&event.CreatedAt,
 			&event.Character_ID,
