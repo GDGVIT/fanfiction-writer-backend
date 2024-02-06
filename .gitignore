@@ -23,3 +23,6 @@ tls/
 
 # Environment files
 .envrc
+
+# Testing CORS
+fanfiction-backend/cmd/examples
