@@ -3,7 +3,6 @@ package main
 import (
 	"errors"
 	"net/http"
-	"time"
 
 	"github.com/GDGVIT/fanfiction-writer-backend/fanfiction-backend/internal/data"
 	"github.com/GDGVIT/fanfiction-writer-backend/fanfiction-backend/internal/validator"
@@ -13,11 +12,11 @@ import (
 func (app *application) createEventHandler(w http.ResponseWriter, r *http.Request) {
 	var input struct {
 		Character_ID string `json:"character_id"`
-		EventTime    string `json:"event_time"`
-		Title        string `json:"title"`
-		Description  string `json:"description"`
-		Details      string `json:"details"`
-		Index        int    `json:"index"`
+		// EventTime    string `json:"event_time"`
+		Title       string `json:"title"`
+		Description string `json:"description"`
+		Details     string `json:"details"`
+		Index       int    `json:"index"`
 	}
 
 	err := app.readJSON(w, r, &input)
@@ -26,11 +25,11 @@ func (app *application) createEventHandler(w http.ResponseWriter, r *http.Reques
 		return
 	}
 
-	eventTime, err := time.Parse("2006-01-02 15:04", input.EventTime)
-	if err != nil {
-		app.serverErrorResponse(w, r, err)
-		return
-	}
+	// eventTime, err := time.Parse("2006-01-02 15:04", input.EventTime)
+	// if err != nil {
+	// 	app.serverErrorResponse(w, r, err)
+	// 	return
+	// }
 
 	char_uuid, err := uuid.Parse(input.Character_ID)
 	if err != nil {
@@ -40,11 +39,11 @@ func (app *application) createEventHandler(w http.ResponseWriter, r *http.Reques
 
 	event := &data.Event{
 		Character_ID: char_uuid,
-		EventTime:    eventTime,
-		Title:        input.Title,
-		Description:  input.Description,
-		Details:      input.Details,
-		Index:        input.Index,
+		// EventTime:    eventTime,
+		Title:       input.Title,
+		Description: input.Description,
+		Details:     input.Details,
+		Index:       input.Index,
 	}
 
 	v := validator.New()
@@ -151,8 +150,6 @@ func (app *application) listStoryEventHandler(w http.ResponseWriter, r *http.Req
 	}
 }
 
-
-
 func (app *application) updateEventHandler(w http.ResponseWriter, r *http.Request) {
 	id, err := app.readUUIDParam(r)
 	if err != nil {
@@ -162,11 +159,11 @@ func (app *application) updateEventHandler(w http.ResponseWriter, r *http.Reques
 
 	var input struct {
 		Character_ID *string `json:"character_id"`
-		EventTime    *string `json:"event_time"`
-		Title        *string `json:"title"`
-		Description  *string `json:"description"`
-		Details      *string `json:"details"`
-		Index        *int    `json:"index"`
+		// EventTime    *string `json:"event_time"`
+		Title       *string `json:"title"`
+		Description *string `json:"description"`
+		Details     *string `json:"details"`
+		Index       *int    `json:"index"`
 	}
 
 	err = app.readJSON(w, r, &input)
@@ -198,13 +195,13 @@ func (app *application) updateEventHandler(w http.ResponseWriter, r *http.Reques
 		event.Character_ID = char_uuid
 	}
 
-	if input.EventTime != nil {
-		event.EventTime, err = time.Parse("2006-01-02 15:04", *input.EventTime)
-		if err != nil {
-			app.serverErrorResponse(w, r, err)
-			return
-		}
-	}
+	// if input.EventTime != nil {
+	// 	event.EventTime, err = time.Parse("2006-01-02 15:04", *input.EventTime)
+	// 	if err != nil {
+	// 		app.serverErrorResponse(w, r, err)
+	// 		return
+	// 	}
+	// }
 	if input.Title != nil {
 		event.Title = *input.Title
 	}

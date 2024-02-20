@@ -14,7 +14,7 @@ type Event struct {
 	ID           uuid.UUID `json:"id"`
 	CreatedAt    time.Time `json:"created_at"`
 	Character_ID uuid.UUID `json:"character_id"`
-	EventTime    time.Time `json:"event_time"`
+	// EventTime    time.Time `json:"event_time"`
 	Title        string    `json:"title"`
 	Description  string    `json:"description,omitempty"`
 	Details      string    `json:"details,omitempty"`
@@ -32,7 +32,7 @@ type Story_Event struct {
 
 func ValidateEvent(v *validator.Validator, event *Event) {
 	v.Check(event.Character_ID != uuid.Nil, "character_id", "must be provided")
-	v.Check(event.EventTime != time.Time{}, "event_time", "must be provided")
+	// v.Check(event.EventTime != time.Time{}, "event_time", "must be provided")
 	v.Check(event.Title != "", "title", "must be provided")
 }
 
@@ -60,11 +60,11 @@ func (m EventModel) Insert(event *Event) error {
 		return err
 	}
 
-	query := `INSERT INTO events(character_id, event_time, title, description, details, index)
+	query := `INSERT INTO events(character_id, title, description, details, index)
 	VALUES ($1, $2, $3, $4, $5, $6)
 	RETURNING id, created_at, version`
 
-	args := []interface{}{event.Character_ID, event.EventTime, event.Title, event.Description, event.Details, event.Index}
+	args := []interface{}{event.Character_ID, event.Title, event.Description, event.Details, event.Index}
 
 	ctx, cancel := context.WithTimeout(context.Background(), TimeoutDuration)
 	defer cancel()
@@ -84,7 +84,7 @@ func (m EventModel) Insert(event *Event) error {
 }
 
 func (m EventModel) Get(event_id uuid.UUID) (*Event, error) {
-	query := `SELECT id, created_at, character_id, event_time, title, description, details, index, version
+	query := `SELECT id, created_at, character_id, title, description, details, index, version
 	FROM events
 	WHERE id = $1`
 
@@ -97,7 +97,7 @@ func (m EventModel) Get(event_id uuid.UUID) (*Event, error) {
 		&event.ID,
 		&event.CreatedAt,
 		&event.Character_ID,
-		&event.EventTime,
+		// &event.EventTime,
 		&event.Title,
 		&event.Description,
 		&event.Details,
@@ -117,7 +117,7 @@ func (m EventModel) Get(event_id uuid.UUID) (*Event, error) {
 }
 
 func (m EventModel) GetForCharacter(character_id uuid.UUID) ([]*Event, error) {
-	query := `SELECT id, created_at, character_id, event_time, title, description, details, index, version
+	query := `SELECT id, created_at, character_id, title, description, details, index, version
 	FROM events
 	WHERE character_id = $1
 	ORDER BY index ASC`
@@ -141,7 +141,7 @@ func (m EventModel) GetForCharacter(character_id uuid.UUID) ([]*Event, error) {
 			&event.ID,
 			&event.CreatedAt,
 			&event.Character_ID,
-			&event.EventTime,
+			// &event.EventTime,
 			&event.Title,
 			&event.Description,
 			&event.Details,
@@ -162,7 +162,7 @@ func (m EventModel) GetForCharacter(character_id uuid.UUID) ([]*Event, error) {
 }
 
 func (m EventModel) GetForStory(id int64) ([]*Story_Event, error) {
-	query := `SELECT c.id, c.index, c.name, c.description, e.id, e.created_at, e.character_id, e.event_time, e.title, e.description, e.details, e.index, e.version
+	query := `SELECT c.id, c.index, c.name, c.description, e.id, e.created_at, e.character_id, e.title, e.description, e.details, e.index, e.version
 	FROM events e
 	LEFT JOIN characters c
 	ON e.character_id = c.id
@@ -193,7 +193,7 @@ func (m EventModel) GetForStory(id int64) ([]*Story_Event, error) {
 			&event.ID,
 			&event.CreatedAt,
 			&event.Character_ID,
-			&event.EventTime,
+			// &event.EventTime,
 			&event.Title,
 			&event.Description,
 			&event.Details,
@@ -270,11 +270,11 @@ func (m EventModel) Update(event *Event, oldindex int, oldCharacterID uuid.UUID)
 	}
 
 	query := `UPDATE events
-	SET event_time = $1, character_id = $2, title = $3, description = $4, details = $5, index = $6, version = version + 1
-	WHERE id = $7 and version = $8
+	SET character_id = $1, title = $2, description = $3, details = $4, index = $5, version = version + 1
+	WHERE id = $6 and version = $7
 	RETURNING version`
 
-	args := []interface{}{event.EventTime, event.Character_ID, event.Title, event.Description, event.Details, event.Index, event.ID, event.Version}
+	args := []interface{}{event.Character_ID, event.Title, event.Description, event.Details, event.Index, event.ID, event.Version}
 
 	ctx, cancel := context.WithTimeout(context.Background(), TimeoutDuration)
 	defer cancel()
