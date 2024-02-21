@@ -143,7 +143,7 @@ func (app *application) listStoryEventHandler(w http.ResponseWriter, r *http.Req
 		return
 	}
 
-	err = app.writeJSON(w, http.StatusOK, envelope{"story_events": events}, nil)
+	err = app.writeJSON(w, http.StatusOK, envelope{"story_id": input.Story_ID, "story_events": events}, nil)
 	if err != nil {
 		app.serverErrorResponse(w, r, err)
 		return
