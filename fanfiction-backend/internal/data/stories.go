@@ -52,7 +52,8 @@ func (m StoryModel) Insert(story *Story) error {
 func (m StoryModel) GetForUser(user_id int64) ([]*Story, error) {
 	query := `SELECT id, created_at, user_id, title, description, version
 	FROM stories
-	WHERE user_id = $1`
+	WHERE user_id = $1
+	ORDER BY id`
 
 	ctx, cancel := context.WithTimeout(context.Background(), TimeoutDuration)
 	defer cancel()
