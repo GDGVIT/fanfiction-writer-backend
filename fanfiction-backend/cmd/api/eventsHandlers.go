@@ -127,23 +127,32 @@ func (app *application) listEventHandler(w http.ResponseWriter, r *http.Request)
 }
 
 func (app *application) listStoryEventHandler(w http.ResponseWriter, r *http.Request) {
-	var input struct {
-		Story_ID int64 `json:"story_id"`
-	}
+	// var input struct {
+	// 	Story_ID int64 `json:"story_id"`
+	// }
 
-	err := app.readJSON(w, r, &input)
+	// err := app.readJSON(w, r, &input)
+	// if err != nil {
+	// 	app.badRequestResponse(w, r, err)
+	// 	return
+	// }
+
+	// events, err := app.models.Events.GetForStory(input.Story_ID)
+
+	id, err := app.readIDParam(r)
 	if err != nil {
-		app.badRequestResponse(w, r, err)
+		app.notFoundResponse(w, r)
 		return
 	}
-
-	events, err := app.models.Events.GetForStory(input.Story_ID)
+	
+	events, err := app.models.Events.GetForStory(id)
 	if err != nil {
 		app.serverErrorResponse(w, r, err)
 		return
 	}
 
-	err = app.writeJSON(w, http.StatusOK, envelope{"story_id": input.Story_ID, "story_events": events}, nil)
+	// err = app.writeJSON(w, http.StatusOK, envelope{"story_id": input.Story_ID, "story_events": events}, nil)
+	err = app.writeJSON(w, http.StatusOK, envelope{"story_id": id, "story_events": events}, nil)
 	if err != nil {
 		app.serverErrorResponse(w, r, err)
 		return
