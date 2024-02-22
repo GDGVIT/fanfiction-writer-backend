@@ -40,8 +40,6 @@ func (app *application) routes() http.Handler {
 	router.HandlerFunc(http.MethodPost, "/v1/events", app.requireActivatedUser(app.createEventHandler))
 	router.HandlerFunc(http.MethodGet, "/v1/events/:id", app.requireActivatedUser(app.getEventHandler))
 	router.HandlerFunc(http.MethodGet, "/v1/events", app.requireActivatedUser(app.listEventHandler))
-	// router.HandlerFunc(http.MethodGet, "/v1/eventsstory", app.requireActivatedUser(app.listStoryEventHandler))
-	// ! Change this back
 	router.HandlerFunc(http.MethodGet, "/v1/eventsstory/:id", app.requireActivatedUser(app.listStoryEventHandler))
 	router.HandlerFunc(http.MethodDelete, "/v1/events/:id", app.requireActivatedUser(app.deleteEventHandler))
 	router.HandlerFunc(http.MethodPatch, "/v1/events/:id", app.requireActivatedUser(app.updateEventHandler))
@@ -64,6 +62,6 @@ func (app *application) routes() http.Handler {
 	router.HandlerFunc(http.MethodPost, "/v1/tokens/authentication", app.createAuthTokenHandler)
 	router.HandlerFunc(http.MethodPost, "/v1/tokens/activation", app.createActivationTokenHandler)
 	router.HandlerFunc(http.MethodPost, "/v1/tokens/password-reset", app.createPasswordResetTokenHandler)
-	
+
 	return app.recoverPanic(app.enableCORS(app.authenticate(router)))
 }

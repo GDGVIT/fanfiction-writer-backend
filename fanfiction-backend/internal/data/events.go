@@ -15,11 +15,11 @@ type Event struct {
 	CreatedAt    time.Time `json:"created_at"`
 	Character_ID uuid.UUID `json:"character_id"`
 	// EventTime    time.Time `json:"event_time"`
-	Title        string    `json:"title"`
-	Description  string    `json:"description,omitempty"`
-	Details      string    `json:"details,omitempty"`
-	Index        int       `json:"index"`
-	Version      int       `json:"-"`
+	Title       string `json:"title"`
+	Description string `json:"description,omitempty"`
+	Details     string `json:"details,omitempty"`
+	Index       int    `json:"index"`
+	Version     int    `json:"-"`
 }
 
 type Story_Event struct {
@@ -27,7 +27,7 @@ type Story_Event struct {
 	Character_Index int       `json:"character_index"`
 	Character_Name  string    `json:"character_name"`
 	Character_Desc  string    `json:"character_description"`
-	Events          []Event   `json:"events"`
+	Events          []*Event  `json:"events"`
 }
 
 func ValidateEvent(v *validator.Validator, event *Event) {
@@ -203,7 +203,7 @@ func (m EventModel) GetForStory(id int64) ([]*Story_Event, error) {
 			return nil, err
 		}
 
-		story_event.Events = append(story_event.Events, event)
+		story_event.Events = append(story_event.Events, &event)
 		story_events = append(story_events, &story_event)
 	}
 
@@ -229,6 +229,56 @@ func (m EventModel) GetForStory(id int64) ([]*Story_Event, error) {
 
 	return concat_story_events, nil
 
+}
+
+func (m *EventModel) GetAllForStory(story_id int64) ([]*Story_Event, error) {
+	query := `SELECT id, name, description, index
+	FROM characters
+	WHERE story_id = $1
+	ORDER BY index`
+
+	ctx, cancel := context.WithTimeout(context.Background(), TimeoutDuration)
+	defer cancel()
+
+	rows, err := m.DB.QueryContext(ctx, query, story_id)
+	if err != nil {
+		return nil, err
+	}
+
+	defer rows.Close()
+
+	story_events := []*Story_Event{}
+
+	for rows.Next() {
+		var story_event Story_Event
+
+		err := rows.Scan(
+			&story_event.Character_ID,
+			&story_event.Character_Name,
+			&story_event.Character_Desc,
+			&story_event.Character_Index,
+		)
+		if err != nil {
+			return nil, err
+		}
+
+		story_events = append(story_events, &story_event)
+	}
+
+	if err = rows.Err(); err != nil {
+		return nil, err
+	}
+
+	for _, v := range story_events {
+		events, err := m.GetForCharacter(v.Character_ID)
+		if err != nil {
+			return nil, err
+		}
+
+		v.Events = events
+	}
+
+	return story_events, nil
 }
 
 func (m EventModel) GetIndexForEvent(id uuid.UUID) (int, error) {
