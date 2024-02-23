@@ -5,7 +5,7 @@ services:
     build: .
     ports:
       - 4000:4000
-    # volumes:
+    # volumes:zi
     #   - .:/usr/src/app
     # command: >
     #   sh -c "go run ./cmd/api/ --db-dsn=postgres://ffwriter:password@localhost/FF-Writer?sslmode=disable

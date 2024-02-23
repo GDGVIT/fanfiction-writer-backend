@@ -58,7 +58,9 @@ func (app *application) createAuthTokenHandler(w http.ResponseWriter, r *http.Re
 		return
 	}
 
-	err = app.writeJSON(w, http.StatusCreated, envelope{"authentication_token": token}, nil)
+	activated := user.Activated
+
+	err = app.writeJSON(w, http.StatusCreated, envelope{"authentication_token": token, "activated": activated}, nil)
 	if err != nil {
 		app.serverErrorResponse(w, r, err)
 		return
