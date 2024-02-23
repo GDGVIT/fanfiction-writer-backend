@@ -61,7 +61,7 @@ func (m EventModel) Insert(event *Event) error {
 	}
 
 	query := `INSERT INTO events(character_id, title, description, details, index)
-	VALUES ($1, $2, $3, $4, $5, $6)
+	VALUES ($1, $2, $3, $4, $5)
 	RETURNING id, created_at, version`
 
 	args := []interface{}{event.Character_ID, event.Title, event.Description, event.Details, event.Index}

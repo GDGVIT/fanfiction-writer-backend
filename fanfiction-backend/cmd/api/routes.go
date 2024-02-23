@@ -41,13 +41,15 @@ func (app *application) routes() http.Handler {
 	router.HandlerFunc(http.MethodGet, "/v1/events/:id", app.requireActivatedUser(app.getEventHandler))
 	router.HandlerFunc(http.MethodGet, "/v1/events", app.requireActivatedUser(app.listEventHandler))
 	router.HandlerFunc(http.MethodGet, "/v1/eventsstory/:id", app.requireActivatedUser(app.listStoryEventHandler))
-	router.HandlerFunc(http.MethodDelete, "/v1/events/:id", app.requireActivatedUser(app.deleteEventHandler))
+	// router.HandlerFunc(http.MethodDelete, "/v1/events/:id", app.requireActivatedUser(app.deleteEventHandler))
+	router.HandlerFunc(http.MethodDelete, "/v1/events/:id", app.deleteEventHandler)
 	router.HandlerFunc(http.MethodPatch, "/v1/events/:id", app.requireActivatedUser(app.updateEventHandler))
 
 	router.HandlerFunc(http.MethodPost, "/v1/characters", app.requireActivatedUser(app.createCharacterHandler))
 	router.HandlerFunc(http.MethodGet, "/v1/characters/:id", app.requireActivatedUser(app.getCharacterHandler))
 	router.HandlerFunc(http.MethodGet, "/v1/characters", app.requireActivatedUser(app.listCharacterHandler))
-	router.HandlerFunc(http.MethodDelete, "/v1/characters/:id", app.requireActivatedUser(app.deleteCharacterHandler))
+	// router.HandlerFunc(http.MethodDelete, "/v1/characters/:id", app.requireActivatedUser(app.deleteCharacterHandler))
+	router.HandlerFunc(http.MethodDelete, "/v1/characters/:id", app.deleteCharacterHandler)
 	router.HandlerFunc(http.MethodPatch, "/v1/characters/:id", app.requireActivatedUser(app.updateCharacterHandler))
 
 	router.HandlerFunc(http.MethodPost, "/v1/charlabels", app.requireActivatedUser(app.createCharLabelHandler))

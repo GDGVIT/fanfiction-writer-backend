@@ -170,12 +170,6 @@ func (app *application) updateEventHandler(w http.ResponseWriter, r *http.Reques
 		return
 	}
 
-	char_uuid, err := uuid.Parse(*input.Character_ID)
-	if err != nil {
-		app.badRequestResponse(w, r, err)
-		return
-	}
-
 	event, err := app.models.Events.Get(id)
 	if err != nil {
 		switch {
@@ -190,6 +184,11 @@ func (app *application) updateEventHandler(w http.ResponseWriter, r *http.Reques
 	oldCharId := event.Character_ID
 
 	if input.Character_ID != nil {
+		char_uuid, err := uuid.Parse(*input.Character_ID)
+		if err != nil {
+			app.badRequestResponse(w, r, err)
+			return
+		}
 		event.Character_ID = char_uuid
 	}
 
