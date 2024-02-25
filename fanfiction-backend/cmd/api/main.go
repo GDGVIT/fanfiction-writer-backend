@@ -75,6 +75,13 @@ func main() {
 	password := "a196a1fa87d620"
 	sender := "FFWriter <no-reply@ffwriter.net>"
 
+	if cfg.env != "development" {
+		host = os.Getenv("SMTP_HOST")
+		port, _ = strconv.Atoi(os.Getenv("SMTP_PORT"))
+		username = os.Getenv("SMTP_USERNAME")
+		password = os.Getenv("SMTP_PASSWORD")
+	}
+
 	app := &application{
 		config: cfg,
 		logger: logger,
