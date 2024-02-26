@@ -69,17 +69,22 @@ func main() {
 	defer db.Close()
 	logger.PrintInfo("Database connection pool established", nil)
 
-	// host := "sandbox.smtp.mailtrap.io"
-	// port := 2525
-	// username := "5c5e586e13d508"
-	// password := "a196a1fa87d620"
-
 	host := os.Getenv("SMTP_HOST")
 	port, _ := strconv.Atoi(os.Getenv("SMTP_PORT"))
 	username := os.Getenv("SMTP_USERNAME")
 	password := os.Getenv("SMTP_PASSWORD")
 	sender := "FFWriter <no-reply@ffwriter.net>"
-	// if cfg.env != "development" {
+
+	host = "sandbox.smtp.mailtrap.io"
+	port = 2525
+	username = "5c5e586e13d508"
+	password = "a196a1fa87d620"
+	// if cfg.env == "development" {
+
+	// 	host = "smtp.gmail.com"
+	// 	username = "ffwriter74@gmail.com"
+	// 	password = "FFWriter123"
+	// 	port = 587
 	// }
 
 	app := &application{
