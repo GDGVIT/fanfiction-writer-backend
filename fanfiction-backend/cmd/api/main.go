@@ -4,7 +4,6 @@ import (
 	"context"
 	"database/sql"
 	"flag"
-	"fmt"
 	"os"
 	"strconv"
 	"sync"
@@ -52,7 +51,6 @@ func main() {
 	}
 
 	cfg.env = os.Getenv("ENV")
-	logger.PrintInfo(os.Getenv("ENV"), nil)
 	if cfg.env == "" {
 		cfg.env = "development"
 	}
@@ -76,14 +74,6 @@ func main() {
 	username := os.Getenv("SMTP_USERNAME")
 	password := os.Getenv("SMTP_PASSWORD")
 	sender := "FFWriter <no-reply@ffwriter.net>"
-
-	// ! Mailtrap testing
-	// host = "sandbox.smtp.mailtrap.io"
-	// port = 2525
-	// username = "5c5e586e13d508"
-	// password = "a196a1fa87d620"
-
-	logger.PrintInfo(fmt.Sprintf("host: %s port: %d username: %s password: %s", host, port, username, password), nil)
 
 	app := &application{
 		config: cfg,
