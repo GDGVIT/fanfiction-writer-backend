@@ -75,17 +75,11 @@ func main() {
 	password := os.Getenv("SMTP_PASSWORD")
 	sender := "FFWriter <no-reply@ffwriter.net>"
 
-	host = "sandbox.smtp.mailtrap.io"
-	port = 2525
-	username = "5c5e586e13d508"
-	password = "a196a1fa87d620"
-	// if cfg.env == "development" {
-
-	// 	host = "smtp.gmail.com"
-	// 	username = "ffwriter74@gmail.com"
-	// 	password = "FFWriter123"
-	// 	port = 587
-	// }
+	// ! Mailtrap testing
+	// host = "sandbox.smtp.mailtrap.io"
+	// port = 2525
+	// username = "5c5e586e13d508"
+	// password = "a196a1fa87d620"
 
 	app := &application{
 		config: cfg,

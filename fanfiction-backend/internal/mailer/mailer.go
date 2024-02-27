@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"embed"
 	"html/template"
+	"net/smtp"
 	"time"
 
 	"github.com/go-mail/mail/v2"
@@ -57,6 +58,7 @@ func (m Mailer) Send(recipient, templateFile string, data interface{}) error {
 	msg.SetHeader("Subject", subject.String())
 	msg.SetBody("text/plain", plainBody.String())
 	msg.AddAlternative("text/html", htmlBody.String())
+	m.dialer.Auth = smtp.PlainAuth("", m.dialer.Username, m.dialer.Password, m.dialer.Host)
 
 	for i := 1; i <= 3; i++ {
 
