@@ -51,9 +51,9 @@ func main() {
 		cfg.port = 4000
 	}
 
-	env := os.Getenv("ENV")
+	cfg.env = os.Getenv("ENV")
 	logger.PrintInfo(os.Getenv("ENV"), nil)
-	if env == "" {
+	if cfg.env == "" {
 		cfg.env = "development"
 	}
 
