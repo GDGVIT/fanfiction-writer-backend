@@ -1,0 +1,34 @@
+{{define "subject"}}Welcome to FFWriter!{{end}}
+{{define "plainBody"}}
+Hi,
+Thanks for signing up for a FFWriter account. We're excited to have you on board!
+To activate your FFWriter account please enter the following code:
+--------------------------
+{{.activationToken}}
+--------------------------
+Please note that this is a one-time use token and it will expire in 1 day.
+Thanks,
+The FFWriter Team
+{{end}}
+{{define "htmlBody"}}
+<!doctype html>
+<html>
+<head>
+<meta name="viewport" content="width=device-width" />
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+</head>
+<body>
+<p>Hi,</p>
+<p>Thanks for signing up for a FFWriter account. We're excited to have you on board!</p>
+<p>To activate your FFWriter account please enter the following code:</p>
+<pre><code>
+--------------------------
+{{.activationToken}}
+--------------------------
+</code></pre>
+<p>Please note that this is a one-time use token and it will expire in 1 day.</p>
+<p>Thanks,</p>
+<p>The FFWriter Team</p>
+</body>
+</html>
+{{end}}
