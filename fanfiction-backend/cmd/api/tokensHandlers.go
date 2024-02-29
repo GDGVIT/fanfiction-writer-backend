@@ -95,7 +95,6 @@ func (app *application) createActivationTokenHandler(w http.ResponseWriter, r *h
 		}
 		return
 	}
-
 	if user.Activated {
 		v.AddError("email", "user account already activated")
 		app.failedValidationResponse(w, r, v.Errors)

@@ -92,7 +92,7 @@ func (app *application) activateUserHandler(w http.ResponseWriter, r *http.Reque
 	}
 
 	v := validator.New()
-	if data.ValidateTokenPlaintext(v, input.TokenPlaintext); !v.Valid() {
+	if data.ValidateTokenPlaintext(v, input.TokenPlaintext, data.ScopeActivation); !v.Valid() {
 		app.failedValidationResponse(w, r, v.Errors)
 		return
 	}
@@ -148,7 +148,7 @@ func (app *application) updateUserPasswordHandler(w http.ResponseWriter, r *http
 	
 	v := validator.New()
 	data.ValidatePassword(v, input.Password)
-	data.ValidateTokenPlaintext(v, input.TokenPlaintext)
+	data.ValidateTokenPlaintext(v, input.TokenPlaintext, data.ScopePasswordReset)
 
 	if !v.Valid() {
 		app.failedValidationResponse(w, r, v.Errors)

@@ -39,7 +39,11 @@ func generateToken(userID int64, ttl time.Duration, scope string) (*Token, error
 		return nil, err
 	}
 
-	token.Plaintext = base32.StdEncoding.WithPadding(base32.NoPadding).EncodeToString(randomBytes)
+	if plain := base32.StdEncoding.WithPadding(base32.NoPadding).EncodeToString(randomBytes); scope == ScopeAuthentication {
+		token.Plaintext = plain
+	} else {
+		token.Plaintext = plain[:6]
+	}
 
 	hash := sha256.Sum256([]byte(token.Plaintext))
 	token.Hash = hash[:]
@@ -47,9 +51,13 @@ func generateToken(userID int64, ttl time.Duration, scope string) (*Token, error
 	return token, nil
 }
 
-func ValidateTokenPlaintext(v *validator.Validator, tokenPlaintext string) {
+func ValidateTokenPlaintext(v *validator.Validator, tokenPlaintext, scope string) {
 	v.Check(tokenPlaintext != "", "token", "must be provided")
-	v.Check(len(tokenPlaintext) == 26, "token", "must be 26 characters long")
+	if scope == ScopeAuthentication {
+		v.Check(len(tokenPlaintext) == 26, "token", "must be 26 characters long")
+	} else {
+		v.Check(len(tokenPlaintext) == 6, "token", "must be 6 characters long")
+	}
 }
 
 type TokenModel struct {
